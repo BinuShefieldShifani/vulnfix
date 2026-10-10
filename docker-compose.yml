@@ -1,0 +1,35 @@
+services:
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: vulnfix-chroma
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/data
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma-data:/data
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vulnfix-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    # 12GB GPU passthrough (Docker Desktop on Windows needs WSL2 + NVIDIA
+    # Container Toolkit). Uncomment to use the GPU for embeddings/generation:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  chroma-data:
+  ollama-data:

@@ -1,0 +1,38 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "semgrep",
+          "rules": [
+            {
+              "id": "python.lang.security.audit.formatted-sql-query",
+              "properties": { "tags": ["CWE-89"] }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "python.lang.security.audit.formatted-sql-query",
+          "level": "error",
+          "message": { "text": "Detected SQL query built with string formatting; use parameterized queries." },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "vulnerable_app.py" },
+                "region": {
+                  "startLine": 7,
+                  "endLine": 7,
+                  "snippet": { "text": "query = \"SELECT * FROM users WHERE username = '%s'\" % username" }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

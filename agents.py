@@ -1,0 +1,127 @@
+"""The LLM-backed agent nodes. Each node takes the graph state and returns a
+partial dict that LangGraph merges back in. JSON parsing is defensive because
+local models are inconsistent about clean JSON output."""
+import difflib
+import json
+import re
+
+from langchain_ollama import ChatOllama
+
+from config import settings
+from models import Finding
+from retriever import retrieve_context
+
+
+def _llm(model: str, temperature: float = 0.1, json_mode: bool = False) -> ChatOllama:
+    kwargs = dict(model=model, base_url=settings.OLLAMA_BASE_URL,
+                  temperature=temperature)
+    if json_mode:
+        # Force valid JSON output — essential for small local models that
+        # otherwise wrap JSON in prose or break the schema.
+        kwargs["format"] = "json"
+    return ChatOllama(**kwargs)
+
+
+def _extract_json(text: str) -> dict:
+    text = (text or "").strip()
+    fence = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.S)
+    if fence:
+        text = fence.group(1)
+    else:
+        a, b = text.find("{"), text.rfind("}")
+        if a != -1 and b != -1:
+            text = text[a:b + 1]
+    try:
+        return json.loads(text)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _invoke_json(llm: ChatOllama, system: str, user: str):
+    resp = llm.invoke([("system", system), ("human", user)])
+    raw = resp.content if hasattr(resp, "content") else str(resp)
+    return _extract_json(raw), raw
+
+
+# --- Node 1: Retriever -------------------------------------------------------
+def retriever_node(state):
+    f: Finding = state["finding"]
+    query = f"{f.rule_id} {f.message} {' '.join(f.cwe)} {f.snippet}".strip()
+    return {"retrieved_context": retrieve_context(query)}
+
+
+# --- Node 2: Static Analyst --------------------------------------------------
+_ANALYST_SYS = (
+    "You are a secure-code static analyst. Given a SAST finding and the source "
+    "file, identify the precise weakness, the vulnerable lines, and the CWE "
+    "class. Respond ONLY as JSON: "
+    '{"weakness": str, "vulnerable_lines": str, "cwe": str, "analysis": str}.'
+)
+
+
+def static_analyst_node(state):
+    f: Finding = state["finding"]
+    user = (f"FINDING:\nrule={f.rule_id}\nmessage={f.message}\ncwe={f.cwe}\n"
+            f"line={f.start_line}\n\nSOURCE ({f.file_path}):\n{state['source_code']}")
+    data, raw = _invoke_json(_llm(settings.REASONING_MODEL, json_mode=True),
+                             _ANALYST_SYS, user)
+    return {"analysis": data.get("analysis") or raw}
+
+
+# --- Node 3: Root-Cause Reasoner --------------------------------------------
+_ROOT_CAUSE_SYS = (
+    "You are a root-cause security reasoner. Using the analysis, the source, "
+    "and retrieved fix patterns from similar real vulnerabilities, explain the "
+    "root cause and propose a concrete, minimal fix strategy. Respond ONLY as "
+    'JSON: {"root_cause": str, "fix_strategy": str}.'
+)
+
+
+def root_cause_node(state):
+    user = (f"ANALYSIS:\n{state.get('analysis', '')}\n\n"
+            f"RETRIEVED FIX PATTERNS:\n{state.get('retrieved_context', '')}\n\n"
+            f"SOURCE:\n{state['source_code']}")
+    data, raw = _invoke_json(_llm(settings.REASONING_MODEL, json_mode=True),
+                             _ROOT_CAUSE_SYS, user)
+    return {
+        "root_cause": data.get("root_cause", "") or raw,
+        "fix_strategy": data.get("fix_strategy", ""),
+    }
+
+
+# --- Node 4: Patch Generator -------------------------------------------------
+_PATCH_SYS = (
+    "You are a secure patch generator. Rewrite the ENTIRE source file to fix "
+    "the described vulnerability, changing as little as possible and preserving "
+    "behavior. Also write a short security regression test that would fail on "
+    "the original code and pass on the fix. Respond ONLY as JSON: "
+    '{"patched_file": "<full file content>", "verification_test": "<test code>", '
+    '"explanation": str}.'
+)
+
+
+def patch_generator_node(state):
+    f: Finding = state["finding"]
+    src = state["source_code"]
+    feedback = state.get("validation_feedback", "")
+    user = (
+        f"ROOT CAUSE:\n{state.get('root_cause', '')}\n\n"
+        f"FIX STRATEGY:\n{state.get('fix_strategy', '')}\n\n"
+        + (f"PREVIOUS ATTEMPT FAILED VALIDATION: {feedback}\n\n" if feedback else "")
+        + f"FILE: {f.file_path}\nSOURCE:\n{src}"
+    )
+    data, raw = _invoke_json(
+        _llm(settings.CODE_MODEL, temperature=0.0, json_mode=True),
+        _PATCH_SYS, user)
+    patched = data.get("patched_file") or src
+    diff = "".join(difflib.unified_diff(
+        src.splitlines(keepends=True),
+        patched.splitlines(keepends=True),
+        fromfile=f"a/{f.file_path}", tofile=f"b/{f.file_path}",
+    ))
+    return {
+        "patched_code": patched,
+        "patch_diff": diff,
+        "verification_test": data.get("verification_test", ""),
+        "attempts": state.get("attempts", 0) + 1,
+    }

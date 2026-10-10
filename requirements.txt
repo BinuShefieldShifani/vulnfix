@@ -1,0 +1,21 @@
+# Ingestion + retrieval
+chromadb>=0.5.0
+requests>=2.31.0
+
+# Agentic pipeline
+langgraph>=0.2.0
+langchain-ollama>=0.2.0
+pydantic>=2.6.0
+
+# Validation
+semgrep>=1.60.0
+
+# REST API
+fastapi>=0.110.0
+uvicorn>=0.29.0
+
+# Streamlit UI
+streamlit>=1.30.0
+
+# Optional: load .env
+python-dotenv>=1.0.0
