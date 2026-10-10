@@ -53,7 +53,8 @@ def _clean_env():
     return keep
 
 
-def run_python(source: str, driver: str, timeout: float = 15.0) -> RunResult:
+def run_python(source: str, driver: str, timeout: float = 15.0,
+               extra_env: dict | None = None) -> RunResult:
     """Write `source` as app.py, then run `driver` (which may import from app)."""
     workdir = tempfile.mkdtemp(prefix="vulnfix_py_")
     try:
@@ -61,7 +62,10 @@ def run_python(source: str, driver: str, timeout: float = 15.0) -> RunResult:
             fh.write(source)
         with open(os.path.join(workdir, "driver.py"), "w") as fh:
             fh.write(driver)
-        return _run(["python", "driver.py"], workdir, timeout, _clean_env())
+        env = _clean_env()
+        if extra_env:
+            env.update(extra_env)
+        return _run(["python", "driver.py"], workdir, timeout, env)
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -71,7 +75,8 @@ def _java_class_name(source: str, default: str) -> str:
     return m.group(1) if m else default
 
 
-def run_java(source: str, driver: str, timeout: float = 60.0) -> RunResult:
+def run_java(source: str, driver: str, timeout: float = 60.0,
+             extra_env: dict | None = None) -> RunResult:
     """Compile `source` plus a Driver class and run Driver.main.
 
     `source` holds the patched class (for example Example). `driver` is the
@@ -87,9 +92,12 @@ def run_java(source: str, driver: str, timeout: float = 60.0) -> RunResult:
             fh.write(source)
         with open(os.path.join(workdir, "Driver.java"), "w") as fh:
             fh.write(driver)
-        compiled = _run(["javac", cls + ".java", "Driver.java"], workdir, timeout, _clean_env())
+        env = _clean_env()
+        if extra_env:
+            env.update(extra_env)
+        compiled = _run(["javac", cls + ".java", "Driver.java"], workdir, timeout, env)
         if not compiled.ok:
             return compiled
-        return _run(["java", "Driver"], workdir, timeout, _clean_env())
+        return _run(["java", "Driver"], workdir, timeout, env)
     finally:
         shutil.rmtree(workdir, ignore_errors=True)

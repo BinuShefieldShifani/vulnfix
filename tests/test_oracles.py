@@ -38,18 +38,19 @@ GOOD = {
     "py-cmdi": 'import subprocess\ndef ping(host):\n    subprocess.run(["echo", host], check=False)\n',
     "py-md5": 'import hashlib, os\ndef hash_password(pw):\n    salt=os.urandom(16)\n    return salt.hex()+":"+hashlib.pbkdf2_hmac("sha256", pw.encode(), salt, 100000).hex()\n',
     "py-yaml": 'import yaml\ndef parse(text):\n    return yaml.safe_load(text)\n',
-    "py-path": 'from pathlib import Path\nBASE=Path("/var/data").resolve()\ndef read_file(filename):\n    t=(BASE/filename).resolve()\n    if not t.is_relative_to(BASE): raise ValueError("escape")\n    return open(t).read()\n',
+    "py-path": 'import os\nfrom pathlib import Path\nBASE=Path(os.environ["VULNFIX_BASE"]).resolve()\ndef read_file(filename):\n    t=(BASE/filename).resolve()\n    if not t.is_relative_to(BASE): raise ValueError("escape")\n    return open(t).read()\n',
     "neg-safe-sql": 'import sqlite3\ndef get_user(conn, username):\n    cur=conn.cursor()\n    cur.execute("SELECT * FROM users WHERE username = ?", (username,))\n    return cur.fetchone()\n',
 }
 
 
 @pytest.mark.parametrize("cid", list(GOOD))
-def test_good_fix_is_safe(cid):
+def test_good_fix_is_safe(cid, tmp_path):
     o = ORACLES[cid]
-    ex = run_python(GOOD[cid], o["exploit_driver"]).output
+    env = {"VULNFIX_BASE": str(tmp_path / "base")}
+    ex = run_python(GOOD[cid], o["exploit_driver"], extra_env=env).output
     assert ex.strip().splitlines()[-1] == "SAFE", ex
     if o["behavior_driver"]:
-        bh = run_python(GOOD[cid], o["behavior_driver"]).output
+        bh = run_python(GOOD[cid], o["behavior_driver"], extra_env=env).output
         assert "BEHAVIOR_OK" in bh, bh
 
 
@@ -60,9 +61,13 @@ def test_cmdi_fstring_is_exploited():
     assert "EXPLOITED" in out, out
 
 
-def test_path_join_is_exploited():
-    bad = 'import os\ndef read_file(filename):\n    return open(os.path.join("/var/data/", filename)).read()\n'
-    out = run_python(bad, ORACLES["py-path"]["exploit_driver"]).output
+def test_path_join_is_exploited(tmp_path):
+    env = {"VULNFIX_BASE": str(tmp_path / "base")}
+    bad = ('import os\n'
+           'BASE=os.environ["VULNFIX_BASE"]\n'
+           'def read_file(filename):\n'
+           '    return open(os.path.join(BASE, filename)).read()\n')
+    out = run_python(bad, ORACLES["py-path"]["exploit_driver"], extra_env=env).output
     assert "EXPLOITED" in out, out
 
 

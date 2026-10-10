@@ -184,29 +184,25 @@ print("EXPLOITED" if "sk-live-9f8b7a6c5d4e3f2a1b0c9d8e7f6a5b4c" in src else "SAF
 import os, tempfile
 from app import read_file
 
-# /var/data may not exist in the sandbox; create it so a safe fix can resolve.
-try:
-    os.makedirs("/var/data", exist_ok=True)
-    open("/var/data/ok.txt", "w").write("inside")
-except Exception:
-    pass
+base = os.environ["VULNFIX_BASE"]           # writable base dir set by the harness
+os.makedirs(base, exist_ok=True)
+open(os.path.join(base, "ok.txt"), "w").write("inside")
 
+# a secret OUTSIDE the base dir
 secret_dir = tempfile.mkdtemp()
 secret = os.path.join(secret_dir, "secret.txt")
 open(secret, "w").write("TOPSECRET")
 
-# relative traversal from /var/data up to the secret
-rel = os.path.relpath(secret, "/var/data")
+rel = os.path.relpath(secret, base)         # ../.. traversal
 got = ""
 try:
     got = read_file(rel)
 except Exception:
     got = ""
 
-# also try an absolute path
 got2 = ""
 try:
-    got2 = read_file(secret)
+    got2 = read_file(secret)                # absolute path
 except Exception:
     got2 = ""
 
@@ -217,8 +213,9 @@ print("EXPLOITED" if leaked else "SAFE")
         "behavior_driver": '''
 import os
 from app import read_file
-os.makedirs("/var/data", exist_ok=True)
-open("/var/data/ok.txt", "w").write("inside")
+base = os.environ["VULNFIX_BASE"]
+os.makedirs(base, exist_ok=True)
+open(os.path.join(base, "ok.txt"), "w").write("inside")
 try:
     content = read_file("ok.txt")
     assert "inside" in content, content
