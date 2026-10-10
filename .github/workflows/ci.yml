@@ -30,8 +30,16 @@ jobs:
           bandit --version | head -1
           javac -version
 
-      - name: Run tests
-        run: pytest -v tests/
+      - name: Run tests (no skips allowed on CI)
+        run: pytest -v -ra tests/ -o xfail_strict=true --no-header
+
+      - name: Fail if any test was skipped
+        run: |
+          pytest -q tests/ --co >/dev/null
+          if pytest -rs -q tests/ 2>&1 | grep -E "^SKIPPED"; then
+            echo "::error::Tests were skipped on CI. The release gate must run every test (semgrep + java present)."
+            exit 1
+          fi
 
       - name: Record exact environment
         if: always()
