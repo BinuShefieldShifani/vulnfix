@@ -24,13 +24,20 @@ SAST/DAST report ──▶ secure parsing ──▶ local embeddings ──▶ p
 2. **Static Analyst** reads the flagged code and the finding.
 3. **Root-Cause Reasoner** explains in plain words why the code is exploitable.
 4. **Patch Generator** writes a fix as a unified diff.
-5. **Validator** scans the original and the patched code with Semgrep (custom VulnFix rules plus `p/default`) and Bandit. The patch passes only if every scanner hit related to the finding's CWE is gone and nothing new appeared. If it fails, the reason goes back to the Patch Generator for another attempt.
+5. **Validator** scans the original and the patched code with Semgrep (custom VulnFix rules plus `p/default`) and Bandit, then compiles the patch (`compile()` for Python, `javac` for Java). The patch passes only if every scanner hit related to the finding's CWE is gone, nothing new appeared, and the code compiles. If it fails, the reason (including the compiler's error message) goes back to the Patch Generator for another attempt.
 
-Models: `qwen2.5-coder:7b` for patches, `llama3.1:8b` for reasoning, `nomic-embed-text` for embeddings.
+Models: `qwen2.5-coder:7b` for patches, `llama3.1:8b` for reasoning, `nomic-embed-text` for embeddings. Every model call uses a mild repeat penalty and an output cap, and retries with a slightly higher temperature if Ollama aborts a repeat loop or the reply has no usable JSON.
 
 ## Results
 
-The same 10 vulnerable cases, plus 1 negative control (code that is already safe), have been through three runs so far. Each run taught me more about the validator than about the model.
+The same 10 vulnerable cases, plus 1 negative control (code that is already safe), have been through four runs so far. Each run taught me more about the validator than about the model.
+
+| | Run 1 (June) | Run 3 | Run 4 |
+|---|---|---|---|
+| Exploitable patch marked "validated" | 3 | 0 | 0 |
+| Non-compiling patch marked "validated" | 0 | 1 | 0 |
+| Real fixes (after manual review) | 7 | 3 | 6 |
+| Model errors | 0 | 2 | 0 |
 
 ### Run 1 (June): 10 "validated", 3 still exploitable
 
@@ -87,14 +94,38 @@ Time per case: 40 to 75 seconds on a Kaggle Tesla T4.
 
 So the Validator now answers "is it still exploitable?" reasonably well. It doesn't answer "does it still work?" at all. The scanners never compile or run the code.
 
-Raw output for runs 2 and 3, including every patch, root cause and generated test, is in [`results/`](results).
+### Run 4 (Kaggle): compile check and repeat-loop fix
+
+Two changes after Run 3:
+
+- **Compile check.** The Validator compiles every patch, and a compiler error goes back to the Patch Generator as feedback.
+- **Repeat-loop handling.** A repeat penalty, an output cap, a Patch Generator temperature of 0.2 instead of 0.0, and automatic retries. Before the full run I retested the two cases that crashed in Run 3, three times each: 0 errors in 6 runs. YAML was fixed correctly 3 times out of 3. Pickle passed once (switched to JSON) and was rejected twice, both times because the model swapped `pickle` for `dill`, which has the same flaw.
+
+| Case | Validator | Manual review |
+|---|---|---|
+| SQL injection (Python) | ✅ validated | ✅ Fixed: parameterized query |
+| SQL injection (Java) | ✅ validated | ✅ Fixed: PreparedStatement |
+| Insecure YAML load | ✅ validated | ✅ Fixed: `yaml.safe_load` |
+| OS command injection (Python) | ✅ validated | ✅ Fixed: `subprocess.run([...])` with no shell. `check=True` now raises when ping fails, which `os.system` never did |
+| Hardcoded credentials | ✅ validated | ✅ Fixed: token from an environment variable, `Authorization` header kept |
+| Command injection (Java) | ✅ validated on attempt 2 | ✅ Fixed. Attempt 1 didn't compile, the `javac` error went back to the model, and attempt 2 declared `InterruptedException` correctly |
+| Code injection (eval) | ✅ validated | ⚠️ Secure, but `ast.literal_eval` can't compute `2*3` |
+| Weak password hash (MD5) | ✅ validated | ⚠️ Switched to `pbkdf2_hmac`, but with a hardcoded salt (`b'salt'`), so equal passwords get equal hashes. No scanner checks for this |
+| Unsafe deserialization (pickle) | ❌ unvalidated after 2 attempts | ✅ Correctly rejected: `dill.loads` instead of `pickle.loads` |
+| Path traversal | ❌ unvalidated after 2 attempts | ✅ Correctly rejected: `os.path.join('/var/data/', filename)` still allows `../` and drops the base folder for absolute paths |
+| Negative control (already safe) | inconclusive | ⚠️ Not approved, but the model still added an unneeded type check and an arbitrary 100-character limit |
+
+Time per case: 43 to 87 seconds, except pickle at 321 seconds, where repeat loops and retries stacked up.
+
+Raw output for runs 2 to 4 and the pickle/YAML retest, including every patch, root cause and generated test, is in [`results/`](results).
 
 ### What I'd change next
 
-- **Compile and run.** Run `py_compile` or `javac` on every patch and execute the generated verification test in a sandbox. The tests need checking too: in one run the generated SQL injection test expected an exception that the correct fix never raises, so it would have failed a good patch.
-- **Flag behavior changes** (eval to `literal_eval`, MD5 to bcrypt, a different auth scheme) for a human, even when they're secure.
+- **Run the tests.** Execute the generated verification test in a sandbox. The tests need checking too: in one run the generated SQL injection test expected an exception that the correct fix never raises, so it would have failed a good patch.
+- **Stop before patching when there's nothing to fix.** If no scanner hit in the original matches the finding, skip the Patch Generator instead of letting it rewrite safe code.
+- **Flag behavior changes** (eval to `literal_eval`, MD5 to a different return type) for a human, even when they're secure.
+- **Add rules for weak fixes**, like a hardcoded salt in a password hash.
 - **Teach the path traversal rule** about other valid checks, such as comparing a resolved path's parent to the base folder.
-- **Handle repeat loops** with a lower temperature, a repeat penalty, or an automatic retry.
 - **Generate an exploit input** for each finding and run it against the patched code.
 
 ## Project layout
@@ -111,7 +142,7 @@ vulnfix/
 ├── query.py                # retrieval sanity check
 ├── retriever.py            # Chroma + Ollama retrieval
 ├── agents.py               # the LLM agent nodes
-├── validator.py            # guardrails + Semgrep/Bandit re-scan
+├── validator.py            # guardrails + Semgrep/Bandit re-scan + compile check
 ├── vulnfix_rules.yml       # custom Semgrep taint rules
 ├── graph.py                # LangGraph assembly + CLI
 ├── testcases.py            # 10 labeled vulnerable cases + 1 negative control
@@ -137,7 +168,7 @@ A free Kaggle notebook with a GPU and internet turned on is enough. Run these in
 ```
 
 ```python
-!apt-get -qq update > /dev/null && apt-get -qq install -y zstd pciutils lshw > /dev/null
+!apt-get -qq update > /dev/null && apt-get -qq install -y zstd pciutils lshw default-jdk-headless > /dev/null
 !curl -fsSL https://ollama.com/install.sh | sh
 import subprocess, time, os
 subprocess.Popen("nohup ollama serve > /kaggle/working/ollama.log 2>&1 &", shell=True)
@@ -210,12 +241,12 @@ uvicorn api:app --host 0.0.0.0 --port 8080
 
 ## Configuration
 
-`SEMGREP_CONFIG` takes a comma-separated list of rule sources. The default is `vulnfix_rules.yml,p/default`. Local `.yml` files are resolved relative to the project folder. Bandit runs automatically on Python files when it's installed.
+`SEMGREP_CONFIG` takes a comma-separated list of rule sources. The default is `vulnfix_rules.yml,p/default`. Local `.yml` files are resolved relative to the project folder. Bandit runs automatically on Python files when it's installed. The Java compile check needs `javac` on the PATH and is skipped without it.
 
 ## Limits
 
 - Best suited to localized bugs: SQL injection, hardcoded secrets, weak crypto, unsafe deserialization, missing input validation. Not built for logic flaws or multi-file issues.
-- "Validated" means the scanners are satisfied. It doesn't mean the code compiles or still behaves the same. Review patches before merging.
+- "Validated" means the scanners are satisfied and the patch compiles. It doesn't mean the code still behaves the same, and the generated tests aren't run yet. Review patches before merging.
 - The custom rules treat every function argument as untrusted. That's deliberately strict, and it can reject safe fixes that use checks the rules don't recognize.
 - Patch generation rewrites the whole file, which is fine for small files. Large files need enclosing-function extraction.
 - Without Semgrep installed, the Validator falls back to heuristic checks and says so in `validation.notes`.
