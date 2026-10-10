@@ -1,6 +1,6 @@
 # VulnFix: local AI agents that fix code vulnerabilities and check their own work
 
-VulnFix takes a finding from a security scanner (a SARIF file from Semgrep, CodeQL or Bandit), works out why the code is vulnerable, writes a patch, and re-runs Semgrep to check the patch. Everything runs on your own machine with LangGraph, ChromaDB and Ollama. No code leaves the box, so it can run air-gapped.
+VulnFix takes a finding from a security scanner (a SARIF file from Semgrep, CodeQL or Bandit), works out why the code is vulnerable, writes a patch, and re-scans the patched code to check it. Everything runs on your own machine with LangGraph, ChromaDB and Ollama. No code leaves the box, so it can run air-gapped.
 
 ![VulnFix fixing a Python SQL injection](screenshots/python-sqli.png)
 
@@ -24,13 +24,17 @@ SAST/DAST report ──▶ secure parsing ──▶ local embeddings ──▶ p
 2. **Static Analyst** reads the flagged code and the finding.
 3. **Root-Cause Reasoner** explains in plain words why the code is exploitable.
 4. **Patch Generator** writes a fix as a unified diff.
-5. **Validator** runs guardrails and re-scans the patched file with Semgrep. If the original rule still fires, the patch goes back for another attempt.
+5. **Validator** scans the original and the patched code with Semgrep (custom VulnFix rules plus `p/default`) and Bandit. The patch passes only if every scanner hit related to the finding's CWE is gone and nothing new appeared. If it fails, the reason goes back to the Patch Generator for another attempt.
 
-Models used: `qwen2.5-coder:7b` for patches, `llama3.1:8b` for reasoning, `nomic-embed-text` for embeddings. All small enough for a single consumer GPU.
+Models: `qwen2.5-coder:7b` for patches, `llama3.1:8b` for reasoning, `nomic-embed-text` for embeddings.
 
-## Results: 10 findings, 10 "validated", 7 real fixes
+## Results
 
-I ran VulnFix on 10 common vulnerability types in Python and Java. The Validator marked all 10 as fixed on the first attempt. Then I reviewed every patch by hand. Three of them would still be exploitable.
+The same 10 vulnerable cases, plus 1 negative control (code that is already safe), have been through three runs so far. Each run taught me more about the validator than about the model.
+
+### Run 1 (June): 10 "validated", 3 still exploitable
+
+The Validator marked all 10 as fixed on the first attempt. Then I reviewed every patch by hand.
 
 | Finding | Language | Validator | Manual review | Time |
 |---|---|---|---|---|
@@ -45,24 +49,53 @@ I ran VulnFix on 10 common vulnerability types in Python and Java. The Validator
 | [Path traversal](screenshots/python-path-traversal.png) | Python | ✅ validated | ❌ Still traversable | 181.2 s |
 | [Code injection (eval)](screenshots/python-eval.png) | Python | ✅ validated | ❌ Still runs attacker code | 187.7 s |
 
-Average time per finding: about 3 minutes on a 16 GB GPU.
+**Why three bad patches passed.** The Validator checked that the Semgrep rule stopped firing, not that the attack stopped working. In all three cases the model changed the code just enough to stop matching the rule's pattern.
 
-### Why three bad patches passed
+- **OS command injection.** `"ping -c 1 " + host` became `f'ping -c 1 {host}'`. Same shell, same string, same bug: `host = "8.8.8.8; rm -rf /"` still works. The Java patch for the same bug got it right with `ProcessBuilder`.
+- **Path traversal.** `Path('/var/data/') / filename` doesn't stop `../../etc/passwd`. Worse, if `filename` is absolute, like `/etc/passwd`, pathlib throws away the base folder entirely.
+- **Code injection (eval).** The patch parses the input with `ast` but only checks the top-level node. `__import__('os').system('id') + 1` is a `BinOp` at the top, so it passes and runs.
 
-The Validator checks that the **Semgrep rule stops firing**. It doesn't check that the **attack stops working**. In all three cases the model changed the code just enough to stop matching the rule's pattern.
+### Run 2 (Kaggle, `SEMGREP_CONFIG=auto`): the scanner went blind
 
-**OS command injection.** The patch swapped `"ping -c 1 " + host` for `f'ping -c 1 {host}'`. Same shell, same string, same bug. `host = "8.8.8.8; rm -rf /"` still works. The real fix is `subprocess.run(["ping", "-c", "1", host])` with no shell. The Java patch for the same bug got this right with `ProcessBuilder`, which makes the Python miss more interesting.
+Rerunning on Kaggle with Semgrep 1.180 gave 4 validated, 6 inconclusive and 1 model error. In 6 cases Semgrep didn't flag the **original** vulnerable code at all, so the Validator had nothing to compare and honestly said "inconclusive".
 
-**Path traversal.** The patch replaced string concatenation with `Path('/var/data/') / filename`. That doesn't stop `../../etc/passwd`. Worse, if `filename` is an absolute path like `/etc/passwd`, pathlib throws away the base folder entirely. The fix needs `.resolve()` followed by a check that the result is still inside `/var/data`.
+I scanned all 10 originals with six rule packs (`auto`, `p/default`, `p/security-audit`, `p/python`, `p/java`, `p/owasp-top-ten`). The best caught 4 of 10. Semgrep's command injection and path traversal rules are mostly taint rules: they fire when they can see user input coming in, like a Flask `request.args` value. A plain function that takes a parameter looks harmless to them. Bandit, which is simpler and pattern-based, caught 7 of the 8 Python bugs.
 
-**Code injection (eval).** The patch parses the input with `ast` but only checks the top-level node. `__import__('os').system('id') + 1` is a `BinOp` at the top, so it passes the check and runs. A safe version walks the whole tree, or uses a small arithmetic evaluator instead of `eval`.
+### Run 3 (Kaggle, stricter validator): no exploitable patch got through
+
+What changed:
+
+- **Custom taint rules** in [`vulnfix_rules.yml`](vulnfix_rules.yml) that treat every function argument as untrusted and follow it into `os.system`, `eval`, `open` and `Runtime.exec`. Before using them, I tested them against the original bugs, the three bad June patches and correct fixes. All 12 checks came out right.
+- **Bandit** as a second scanner for Python.
+- **CWE-targeted judging.** The Validator checks only the hits related to the finding being fixed, so an unrelated issue that was already there (like a missing `requests` timeout) doesn't fail a good patch.
+
+| Case | Validator | Manual review |
+|---|---|---|
+| SQL injection (Python) | ✅ validated | ✅ Fixed: parameterized query |
+| SQL injection (Java) | ✅ validated | ✅ Fixed: PreparedStatement |
+| OS command injection (Python) | ✅ validated | ✅ Fixed: `subprocess.run([...])` with no shell. Minor gap: a `host` starting with `-` could still be read as a ping option |
+| Code injection (eval) | ✅ validated | ⚠️ Secure, but `ast.literal_eval` can't compute `2*3`, so `compute()` no longer works |
+| Weak password hash (MD5) | ✅ validated | ⚠️ Secure, but returns bytes instead of a hex string, and old hashes need migrating |
+| Hardcoded credentials | ✅ validated | ⚠️ Token moved to an environment variable, but the model also switched from an `Authorization` header to basic auth |
+| Command injection (Java) | ✅ validated | ❌ Good ProcessBuilder fix, but doesn't compile: `waitFor()` throws `InterruptedException` and the patch narrowed the method to `throws IOException` |
+| Path traversal | ❌ unvalidated after 2 attempts | ⚠️ Rejected, but the second patch looks safe to me. False negative from my rule, which only trusts `is_relative_to` and `basename` as safe checks |
+| Unsafe deserialization (pickle) | error | Model got stuck in a repeat loop and Ollama aborted it |
+| Insecure YAML load | error | Same repeat-loop abort |
+| Negative control (already safe) | inconclusive | ✅ No patch produced. Correctly left alone |
+
+Time per case: 40 to 75 seconds on a Kaggle Tesla T4.
+
+So the Validator now answers "is it still exploitable?" reasonably well. It doesn't answer "does it still work?" at all. The scanners never compile or run the code.
+
+Raw output for runs 2 and 3, including every patch, root cause and generated test, is in [`results/`](results).
 
 ### What I'd change next
 
-- Generate an exploit input for each finding and run it against the patched code, so validation means "the attack fails", not "the rule is quiet".
-- Re-scan with more than one rule set (Semgrep plus Bandit for Python) so a patch can't dodge a single pattern.
-- Actually execute the generated verification test instead of only producing it.
-- Flag patches that change behavior (pickle to JSON, MD5 to bcrypt) for a human, even when they're secure.
+- **Compile and run.** Run `py_compile` or `javac` on every patch and execute the generated verification test in a sandbox. The tests need checking too: in one run the generated SQL injection test expected an exception that the correct fix never raises, so it would have failed a good patch.
+- **Flag behavior changes** (eval to `literal_eval`, MD5 to bcrypt, a different auth scheme) for a human, even when they're secure.
+- **Teach the path traversal rule** about other valid checks, such as comparing a resolved path's parent to the base folder.
+- **Handle repeat loops** with a lower temperature, a repeat penalty, or an automatic retry.
+- **Generate an exploit input** for each finding and run it against the patched code.
 
 ## Project layout
 
@@ -71,14 +104,15 @@ vulnfix/
 ├── docker-compose.yml      # ChromaDB + Ollama services
 ├── requirements.txt
 ├── .env.example            # optional config overrides
-├── config.py               # endpoints + model defaults
+├── config.py               # endpoints + model and scanner defaults
 ├── models.py               # Pydantic schemas + LangGraph state
 ├── sarif.py                # SARIF 2.1.0 intake (Semgrep/CodeQL/Bandit)
 ├── ingest_osv.py           # build the Chroma advisory collection
 ├── query.py                # retrieval sanity check
 ├── retriever.py            # Chroma + Ollama retrieval
 ├── agents.py               # the LLM agent nodes
-├── validator.py            # guardrails + Semgrep re-scan
+├── validator.py            # guardrails + Semgrep/Bandit re-scan
+├── vulnfix_rules.yml       # custom Semgrep taint rules
 ├── graph.py                # LangGraph assembly + CLI
 ├── testcases.py            # 10 labeled vulnerable cases + 1 negative control
 ├── api.py                  # FastAPI service for CI/CD
@@ -86,10 +120,41 @@ vulnfix/
 ├── examples/
 │   ├── vulnerable_app.py   # demo file (SQL injection)
 │   └── findings.sarif      # matching SARIF report
-└── screenshots/            # results from the runs above
+├── results/                # raw output from the Kaggle runs
+└── screenshots/            # results from the June run
 ```
 
 ## Running it
+
+### Option A: Kaggle (no Docker, free GPU)
+
+A free Kaggle notebook with a GPU and internet turned on is enough. Run these in notebook cells:
+
+```python
+!git clone https://github.com/BinuShefieldShifani/vulnfix.git
+%cd vulnfix
+!pip install -q -r requirements.txt
+```
+
+```python
+!apt-get -qq update > /dev/null && apt-get -qq install -y zstd pciutils lshw > /dev/null
+!curl -fsSL https://ollama.com/install.sh | sh
+import subprocess, time, os
+subprocess.Popen("nohup ollama serve > /kaggle/working/ollama.log 2>&1 &", shell=True)
+time.sleep(8)
+!ollama pull nomic-embed-text && ollama pull qwen2.5-coder:7b && ollama pull llama3.1:8b
+```
+
+```python
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+subprocess.Popen("nohup chroma run --path /kaggle/working/chroma_data --host localhost "
+                 "--port 8000 > /kaggle/working/chroma.log 2>&1 &", shell=True)
+time.sleep(8)
+!python ingest_osv.py --ecosystems PyPI Maven NuGet --limit 500
+!python graph.py --sarif examples/findings.sarif --src-root examples
+```
+
+### Option B: Docker on your own machine
 
 You need Docker, Python 3.10+ and a GPU with about 12 GB of memory or more.
 
@@ -104,7 +169,7 @@ docker exec vulnfix-ollama ollama pull nomic-embed-text
 docker exec vulnfix-ollama ollama pull qwen2.5-coder:7b
 docker exec vulnfix-ollama ollama pull llama3.1:8b
 ```
-On a 12 GB card you can point `CODE_MODEL` and `REASONING_MODEL` at the same model to avoid swapping.
+On a 12 GB card you can point `CODE_MODEL` and `REASONING_MODEL` at the same model to avoid swapping. To use the GPU, uncomment the `deploy` section in `docker-compose.yml`.
 
 **3. Install Python dependencies**
 ```bash
@@ -143,12 +208,17 @@ uvicorn api:app --host 0.0.0.0 --port 8080
 # POST /remediate-batch  {sarif, sources}
 ```
 
+## Configuration
+
+`SEMGREP_CONFIG` takes a comma-separated list of rule sources. The default is `vulnfix_rules.yml,p/default`. Local `.yml` files are resolved relative to the project folder. Bandit runs automatically on Python files when it's installed.
+
 ## Limits
 
 - Best suited to localized bugs: SQL injection, hardcoded secrets, weak crypto, unsafe deserialization, missing input validation. Not built for logic flaws or multi-file issues.
+- "Validated" means the scanners are satisfied. It doesn't mean the code compiles or still behaves the same. Review patches before merging.
+- The custom rules treat every function argument as untrusted. That's deliberately strict, and it can reject safe fixes that use checks the rules don't recognize.
 - Patch generation rewrites the whole file, which is fine for small files. Large files need enclosing-function extraction.
 - Without Semgrep installed, the Validator falls back to heuristic checks and says so in `validation.notes`.
-- As the results show, "validated" means the scanner is satisfied. Review patches before merging.
 
 ## Data layers
 
