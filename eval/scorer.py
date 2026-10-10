@@ -63,21 +63,22 @@ def score_python(case_id: str, patched: str) -> PatchScore:
     env = {"VULNFIX_BASE": os.path.join(base, "data")}
 
     exploit = "na"
-    if o["exploit_driver"] and compiles:
-        out = run_python(patched, o["exploit_driver"], extra_env=env).output
-        v = _verdict_from_output(out, "SAFE", "EXPLOITED")
-        exploit = {"good": "safe", "bad": "exploited", "error": "error"}[v]
-    elif o["exploit_driver"] and not compiles:
-        exploit = "error"
+    if o["exploit_driver"]:
+        if not compiles:
+            exploit = "compile_fail"
+        else:
+            out = run_python(patched, o["exploit_driver"], extra_env=env).output
+            v = _verdict_from_output(out, "SAFE", "EXPLOITED")
+            exploit = {"good": "safe", "bad": "exploited", "error": "error"}[v]
 
     behavior = "na"
-    if o["behavior_driver"] and compiles:
-        out = run_python(patched, o["behavior_driver"], extra_env=env).output
-        v = _verdict_from_output(out, "BEHAVIOR_OK", "BEHAVIOR_FAIL")
-        # anything that is not a clean OK counts as broken (exception, assert, etc.)
-        behavior = "ok" if v == "good" else "broken"
-    elif o["behavior_driver"] and not compiles:
-        behavior = "broken"
+    if o["behavior_driver"]:
+        if not compiles:
+            behavior = "compile_fail"
+        else:
+            out = run_python(patched, o["behavior_driver"], extra_env=env).output
+            v = _verdict_from_output(out, "BEHAVIOR_OK", "BEHAVIOR_FAIL")
+            behavior = "ok" if v == "good" else "broken"
 
     return PatchScore(case_id, "python", compiles, exploit, behavior)
 
@@ -93,7 +94,7 @@ def score_java(case_id: str, patched: str) -> PatchScore:
         if r.timed_out:
             exploit, compiles = "error", True
         elif "error:" in (r.output or "") and not r.stdout:
-            compiles, exploit = False, "error"
+            compiles, exploit = False, "compile_fail"
         else:
             v = _verdict_from_output(r.output, "SAFE", "EXPLOITED")
             exploit = {"good": "safe", "bad": "exploited", "error": "error"}[v]

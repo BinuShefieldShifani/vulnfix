@@ -75,3 +75,10 @@ def test_java_cmdi_good_is_safe():
             '    }\n}\n')
     s = score_patch("java-cmdi", good)
     assert s.compiles and s.exploit == "safe", s
+
+
+def test_noncompiling_python_is_compile_fail_not_error():
+    # exploit/behavior should read compile_fail, not error/broken, when code won't compile
+    s = score_patch("py-cmdi", "def ping(:\n    pass\n")
+    assert not s.compiles
+    assert s.exploit == "compile_fail", s

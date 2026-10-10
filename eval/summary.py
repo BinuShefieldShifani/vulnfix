@@ -23,6 +23,7 @@ def summarize(per_case, repeats, has_exploit, has_behavior):
             "errors": errors,
             "validated_rate": _rate(rows, lambda r: r.get("validated")),
             "truly_fixed_rate": _rate(rows, lambda r: r.get("exploit") == "safe") if he else None,
+            "exploit_compile_fail_rate": _rate(rows, lambda r: r.get("exploit") == "compile_fail") if he else None,
             "behavior_ok_rate": _rate(rows, lambda r: r.get("behavior") == "ok") if hb else None,
             "compile_rate": _rate(rows, lambda r: r.get("compiles")),
             "validated_but_exploitable": _rate(
