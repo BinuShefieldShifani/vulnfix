@@ -2,13 +2,18 @@
 
 Each case is either an original bug, a known bad patch (from the June run),
 or a correct fix. Bugs and bad patches must be flagged; correct fixes and the
-negative control must not be.
+negative control must not be. Skipped entirely when semgrep is not installed
+(for example on a laptop); CI has it.
 """
 import json
 import os
+import shutil
 import subprocess
 
 import pytest
+
+needs_semgrep = pytest.mark.skipif(
+    shutil.which("semgrep") is None, reason="semgrep not installed")
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 RULES = os.path.join(ROOT, "vulnfix_rules.yml")
@@ -121,6 +126,7 @@ def scan_results(tmp_path_factory):
     return hits
 
 
+@needs_semgrep
 @pytest.mark.parametrize("name,fname,should_flag,code", CASES, ids=[c[0] for c in CASES])
 def test_rule(scan_results, name, fname, should_flag, code):
     flagged = bool(scan_results.get(name))

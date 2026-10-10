@@ -1,5 +1,9 @@
 """Tests for validator.py that need no LLM: the compile check, CWE matching,
-and the full validator node on known good and bad patches."""
+and the full validator node on known good and bad patches.
+
+Tests that need a tool (semgrep or the Java toolchain) skip when it is absent,
+so the suite is green on a laptop and fully exercised on CI.
+"""
 import shutil
 
 import pytest
@@ -7,7 +11,10 @@ import pytest
 import validator
 from models import Finding
 
-needs_javac = pytest.mark.skipif(shutil.which("javac") is None, reason="javac not installed")
+needs_javac = pytest.mark.skipif(
+    shutil.which("javac") is None, reason="javac not installed")
+needs_semgrep = pytest.mark.skipif(
+    shutil.which("semgrep") is None, reason="semgrep not installed")
 
 # --- compile check ------------------------------------------------------------
 
@@ -102,6 +109,7 @@ def ping(host):
 '''
 
 
+@needs_semgrep
 def test_fstring_bypass_is_rejected():
     """The June bad patch: same shell call, now with an f-string."""
     v = _validate("app.py", ["CWE-78"], PY_CMDI_ORIGINAL, '''import os
@@ -114,6 +122,7 @@ def ping(host):
     assert not v.validated
 
 
+@needs_semgrep
 def test_subprocess_list_fix_is_validated():
     v = _validate("app.py", ["CWE-78"], PY_CMDI_ORIGINAL, '''import subprocess
 
@@ -124,6 +133,7 @@ def ping(host):
     assert v.validated, v.notes
 
 
+@needs_semgrep
 def test_dill_swap_is_rejected():
     """The model's trick from the pickle retest: dill has the same flaw."""
     v = _validate("app.py", ["CWE-502"], '''import pickle
@@ -140,6 +150,7 @@ def load(blob):
     assert not v.validated
 
 
+@needs_semgrep
 def test_negative_control_is_inconclusive():
     safe = '''import sqlite3
 
@@ -155,6 +166,7 @@ def get_user(conn, username):
 
 
 @needs_javac
+@needs_semgrep
 def test_non_compiling_java_patch_is_rejected():
     v = _validate("Example.java", ["CWE-78"], JAVA_CMDI_ORIGINAL, JAVA_RUN3_BAD)
     assert not v.validated
@@ -162,6 +174,7 @@ def test_non_compiling_java_patch_is_rejected():
 
 
 @needs_javac
+@needs_semgrep
 def test_compiling_java_patch_is_validated():
     v = _validate("Example.java", ["CWE-78"], JAVA_CMDI_ORIGINAL, JAVA_RUN4_GOOD)
     assert v.validated, (v.notes, v.guardrail_issues)
