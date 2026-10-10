@@ -80,7 +80,7 @@ vulnfix/
 ├── agents.py               # the LLM agent nodes
 ├── validator.py            # guardrails + Semgrep re-scan
 ├── graph.py                # LangGraph assembly + CLI
-├── testcases.py            # the vulnerability test cases
+├── testcases.py            # 10 labeled vulnerable cases + 1 negative control
 ├── api.py                  # FastAPI service for CI/CD
 ├── app.py                  # Streamlit UI
 ├── examples/
