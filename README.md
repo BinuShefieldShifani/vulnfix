@@ -1,5 +1,7 @@
 # VulnFix: local AI agents that fix code vulnerabilities and check their own work
 
+[![CI](https://github.com/BinuShefieldShifani/vulnfix/actions/workflows/ci.yml/badge.svg)](https://github.com/BinuShefieldShifani/vulnfix/actions/workflows/ci.yml)
+
 VulnFix takes a finding from a security scanner (a SARIF file from Semgrep, CodeQL or Bandit), works out why the code is vulnerable, writes a patch, and re-scans the patched code to check it. Everything runs on your own machine with LangGraph, ChromaDB and Ollama. No code leaves the box, so it can run air-gapped.
 
 ![VulnFix fixing a Python SQL injection](screenshots/python-sqli.png)

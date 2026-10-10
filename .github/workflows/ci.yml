@@ -32,3 +32,14 @@ jobs:
 
       - name: Run tests
         run: pytest -v tests/
+
+      - name: Record exact environment
+        if: always()
+        run: pip freeze > requirements.lock.txt
+
+      - name: Upload environment record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: requirements-lock
+          path: requirements.lock.txt
