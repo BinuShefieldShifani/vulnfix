@@ -14,7 +14,10 @@ from retriever import retrieve_context
 
 def _llm(model: str, temperature: float = 0.1, json_mode: bool = False) -> ChatOllama:
     kwargs = dict(model=model, base_url=settings.OLLAMA_BASE_URL,
-                  temperature=temperature)
+                  temperature=temperature,
+                  # Small models at low temperature can loop on the same line
+                  # until Ollama aborts. A mild repeat penalty and a cap help.
+                  repeat_penalty=1.1, num_predict=2048)
     if json_mode:
         # Force valid JSON output — essential for small local models that
         # otherwise wrap JSON in prose or break the schema.
@@ -37,10 +40,26 @@ def _extract_json(text: str) -> dict:
         return {}
 
 
-def _invoke_json(llm: ChatOllama, system: str, user: str):
-    resp = llm.invoke([("system", system), ("human", user)])
-    raw = resp.content if hasattr(resp, "content") else str(resp)
-    return _extract_json(raw), raw
+def _invoke_json(llm: ChatOllama, system: str, user: str, retries: int = 2):
+    """Call the model and parse JSON. If the call fails (for example Ollama
+    aborting a repeat loop) or returns no usable JSON, retry with a slightly
+    higher temperature."""
+    last_err, raw = None, ""
+    for i in range(retries + 1):
+        model = llm if i == 0 else llm.model_copy(
+            update={"temperature": (llm.temperature or 0.0) + 0.3 * i})
+        try:
+            resp = model.invoke([("system", system), ("human", user)])
+        except Exception as e:  # noqa: BLE001
+            last_err = e
+            continue
+        raw = resp.content if hasattr(resp, "content") else str(resp)
+        data = _extract_json(raw)
+        if data:
+            return data, raw
+    if last_err is not None and not raw:
+        raise last_err
+    return {}, raw
 
 
 # --- Node 1: Retriever -------------------------------------------------------
@@ -111,7 +130,7 @@ def patch_generator_node(state):
         + f"FILE: {f.file_path}\nSOURCE:\n{src}"
     )
     data, raw = _invoke_json(
-        _llm(settings.CODE_MODEL, temperature=0.0, json_mode=True),
+        _llm(settings.CODE_MODEL, temperature=0.2, json_mode=True),
         _PATCH_SYS, user)
     patched = data.get("patched_file") or src
     diff = "".join(difflib.unified_diff(
