@@ -124,6 +124,39 @@ def _scan(file_path: str, content: str):
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
+def _compile_check(file_path: str, content: str) -> str:
+    """Return a short compiler error for `content`, or "" if it compiles (or no
+    compiler is available for this language). Python is only compiled to
+    bytecode, never run."""
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == ".py":
+        try:
+            compile(content, file_path, "exec")
+            return ""
+        except SyntaxError as e:
+            return f"SyntaxError line {e.lineno}: {e.msg}"
+    if ext == ".java" and shutil.which("javac"):
+        m = re.search(r"public\s+(?:final\s+|abstract\s+)*class\s+(\w+)", content)
+        name = m.group(1) if m else os.path.splitext(os.path.basename(file_path))[0]
+        tmpdir = tempfile.mkdtemp()
+        try:
+            src_file = os.path.join(tmpdir, name + ".java")
+            with open(src_file, "w") as fh:
+                fh.write(content)
+            out = subprocess.run(["javac", "-d", tmpdir, src_file],
+                                 capture_output=True, text=True, timeout=120)
+            if out.returncode == 0:
+                return ""
+            errs = [l.replace(tmpdir + os.sep, "") for l in out.stderr.splitlines()
+                    if "error" in l][:3]
+            return " | ".join(errs) or "javac failed"
+        except (subprocess.SubprocessError, OSError):
+            return ""
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+    return ""
+
+
 def _is_related(hit, finding_cwes):
     if not finding_cwes:
         return True
@@ -138,6 +171,11 @@ def validator_node(state):
     original = state["source_code"]
     patched = state.get("patched_code", "")
     guard = _guardrails(original, patched)
+    # Compile check: only meaningful if the original compiles.
+    if patched.strip() and not _compile_check(f.file_path, original):
+        compile_err = _compile_check(f.file_path, patched)
+        if compile_err:
+            guard.append(f"patch does not compile: {compile_err}")
 
     # Scan the original once and cache it across retries.
     orig = state.get("orig_findings")
