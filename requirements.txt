@@ -9,6 +9,7 @@ pydantic>=2.6.0
 
 # Validation
 semgrep>=1.60.0
+bandit>=1.7.0
 
 # REST API
 fastapi>=0.110.0

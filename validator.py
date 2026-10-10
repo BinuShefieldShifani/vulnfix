@@ -1,10 +1,12 @@
-"""Validator node. Real validation = re-run the static analyzer on BOTH the
-original and patched code, then confirm every issue Semgrep found in the
-original is gone and no new issue was introduced. Falls back to heuristic
-checks if Semgrep is unavailable, and flags 'inconclusive' when Semgrep did
-not detect anything in the original (so the fix cannot be auto-verified)."""
+"""Validator node. Re-scans BOTH the original and the patched code with
+Semgrep (custom VulnFix taint rules + public packs) and Bandit (Python), then
+checks that every scanner hit related to the finding's CWE is gone and that no
+new meaningful issue was introduced. Unrelated issues already in the original
+are ignored. Falls back to heuristics if Semgrep is unavailable, and flags
+'inconclusive' when no scanner hit in the original matches the finding."""
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -12,11 +14,25 @@ import tempfile
 from config import settings
 from models import Finding, ValidationResult
 
+_HERE = os.path.dirname(os.path.abspath(__file__))
+
 # Risky constructs the patch must not *introduce* (illustrative, not exhaustive)
 _DANGEROUS = [
     "eval(", "exec(", "os.system(", "subprocess.call(", "shell=True",
     "pickle.loads(", "yaml.load(", "__import__(",
 ]
+
+# CWEs that count as "the same problem" when matching scanner hits to the
+# finding being fixed. Scanners don't always tag the same bug with the same CWE.
+_RELATED_CWES = {
+    "CWE-78": {"CWE-77", "CWE-78"},
+    "CWE-89": {"CWE-89"},
+    "CWE-95": {"CWE-94", "CWE-95", "CWE-78"},   # Bandit tags eval (B307) as CWE-78
+    "CWE-22": {"CWE-22", "CWE-23", "CWE-73"},
+    "CWE-502": {"CWE-502", "CWE-20"},           # Bandit tags yaml.load (B506) as CWE-20
+    "CWE-327": {"CWE-327", "CWE-328", "CWE-916"},
+    "CWE-798": {"CWE-798", "CWE-259", "CWE-321"},
+}
 
 
 def _guardrails(original: str, patched: str):
@@ -31,36 +47,90 @@ def _guardrails(original: str, patched: str):
     return issues
 
 
-def _run_semgrep(file_path: str, content: str):
-    """Return the list of rule ids Semgrep fires on `content`, or None if
-    Semgrep is unavailable."""
+def _cwes(text):
+    return {f"CWE-{n}" for n in re.findall(r"CWE-(\d+)", text or "")}
+
+
+def _semgrep_configs():
+    args = []
+    for item in settings.SEMGREP_CONFIG.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if item.endswith((".yml", ".yaml")) and not os.path.isabs(item):
+            item = os.path.join(_HERE, item)
+        args += ["--config", item]
+    return args
+
+
+def _scan_semgrep(path):
     if shutil.which("semgrep") is None:
         return None
+    out = subprocess.run(
+        ["semgrep", *_semgrep_configs(), "--sarif", "--quiet", path],
+        capture_output=True, text=True, timeout=300,
+    )
+    try:
+        sarif = json.loads(out.stdout)
+    except Exception:  # noqa: BLE001
+        return []
+    found = []
+    for run in sarif.get("runs", []) or []:
+        rule_cwes = {}
+        for rule in run.get("tool", {}).get("driver", {}).get("rules", []) or []:
+            tags = " ".join((rule.get("properties") or {}).get("tags") or [])
+            rule_cwes[rule.get("id")] = _cwes(tags)
+        for res in run.get("results", []) or []:
+            rid = res.get("ruleId")
+            if rid:
+                found.append({"id": f"semgrep:{rid}",
+                              "cwes": rule_cwes.get(rid, set()), "low": False})
+    return found
+
+
+def _scan_bandit(path):
+    if not path.endswith(".py") or shutil.which("bandit") is None:
+        return []
+    out = subprocess.run(["bandit", "-q", "-f", "json", path],
+                         capture_output=True, text=True, timeout=300)
+    try:
+        data = json.loads(out.stdout)
+    except Exception:  # noqa: BLE001
+        return []
+    found = []
+    for r in data.get("results", []):
+        cwe = (r.get("issue_cwe") or {}).get("id")
+        found.append({"id": f"bandit:{r['test_id']}",
+                      "cwes": {f"CWE-{cwe}"} if cwe else set(),
+                      "low": r.get("issue_severity") == "LOW"})
+    return found
+
+
+def _scan(file_path: str, content: str):
+    """Semgrep + Bandit hits for `content`, or None if Semgrep is unavailable."""
     tmpdir = tempfile.mkdtemp()
     try:
         ext = os.path.splitext(file_path)[1] or ".py"
         tmpf = os.path.join(tmpdir, "scan" + ext)
         with open(tmpf, "w") as fh:
             fh.write(content)
-        out = subprocess.run(
-            ["semgrep", "--config", settings.SEMGREP_CONFIG,
-             "--sarif", "--quiet", tmpf],
-            capture_output=True, text=True, timeout=300,
-        )
-        try:
-            sarif = json.loads(out.stdout)
-        except Exception:  # noqa: BLE001
-            return []
-        ids = []
-        for run in sarif.get("runs", []) or []:
-            for res in run.get("results", []) or []:
-                if res.get("ruleId"):
-                    ids.append(res["ruleId"])
-        return ids
+        sem = _scan_semgrep(tmpf)
+        if sem is None:
+            return None
+        return sem + _scan_bandit(tmpf)
     except (subprocess.SubprocessError, OSError):
         return []
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+def _is_related(hit, finding_cwes):
+    if not finding_cwes:
+        return True
+    wanted = set()
+    for c in finding_cwes:
+        wanted |= _RELATED_CWES.get(c, {c})
+    return bool(hit["cwes"] & wanted)
 
 
 def validator_node(state):
@@ -72,8 +142,8 @@ def validator_node(state):
     # Scan the original once and cache it across retries.
     orig = state.get("orig_findings")
     if orig is None:
-        orig = _run_semgrep(f.file_path, original)
-    remaining = _run_semgrep(f.file_path, patched)
+        orig = _scan(f.file_path, original)
+    remaining = _scan(f.file_path, patched)
     extra = {"orig_findings": orig} if orig is not None else {}
 
     # --- Semgrep unavailable: heuristic fallback ---
@@ -87,38 +157,42 @@ def validator_node(state):
             "guardrails: " + "; ".join(guard) if guard else "no change produced")
         return {"validation": vr, "validation_feedback": feedback, **extra}
 
-    orig_ids = {r for r in orig if r}
-    rem_ids = {r for r in remaining if r}
-    new = sorted(rem_ids - orig_ids)
+    orig_ids = {h["id"] for h in orig}
+    targets = {h["id"] for h in orig if _is_related(h, f.cwe)}
+    rem_ids = {h["id"] for h in remaining}
+    still = sorted(targets & rem_ids)
+    new = sorted({h["id"] for h in remaining if not h["low"]} - orig_ids)
+    ignored = sorted(orig_ids - targets)
+    scanners = f"semgrep [{settings.SEMGREP_CONFIG}] + bandit"
 
-    # --- Semgrep found nothing in the original: cannot auto-verify ---
-    if not orig_ids:
+    # --- No scanner hit in the original matches this finding: cannot auto-verify ---
+    if not targets:
         vr = ValidationResult(
             validated=False, ran_semgrep=True, inconclusive=True,
             remaining_rule_ids=sorted(rem_ids), new_findings=new,
             guardrail_issues=guard,
-            notes="semgrep found no issue in the original; fix cannot be "
-                  "auto-verified (check the rules / language support)")
+            notes=f"{scanners}: no hit in the original matches {f.cwe or 'this finding'}; "
+                  "fix cannot be auto-verified")
         return {"validation": vr, "validation_feedback": "", **extra}
 
-    # --- Normal case: every original issue gone, nothing new, guardrails ok ---
-    resolved = not (rem_ids & orig_ids)
-    validated = resolved and not new and not guard
+    # --- Normal case: related hits gone, nothing new, guardrails ok ---
+    validated = not still and not new and not guard
     feedback = ""
     if not validated:
         bits = []
         if guard:
             bits.append("guardrails: " + "; ".join(guard))
-        still = sorted(rem_ids & orig_ids)
         if still:
             bits.append("still flagged: " + ", ".join(still[:3]))
         if new:
             bits.append("patch introduced: " + ", ".join(new[:3]))
         feedback = " | ".join(bits) or "fix not confirmed by re-scan"
 
+    note = f"{scanners}: targeted {sorted(targets)}"
+    if ignored:
+        note += f"; ignored unrelated {ignored}"
     vr = ValidationResult(
         validated=validated, ran_semgrep=True, inconclusive=False,
         remaining_rule_ids=sorted(rem_ids), new_findings=new,
-        guardrail_issues=guard,
-        notes="re-scanned original vs patched with semgrep")
+        guardrail_issues=guard, notes=note)
     return {"validation": vr, "validation_feedback": feedback, **extra}

@@ -1,0 +1,305 @@
+[
+  {
+    "id": "py-sqli",
+    "name": "Python \u2014 SQL injection (string format)",
+    "original_code": "import sqlite3\n\n\ndef get_user(conn, username):\n    cur = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = '%s'\" % username\n    cur.execute(query)\n    return cur.fetchone()\n",
+    "time_s": 62.9,
+    "finding": {
+      "rule_id": "python.lang.security.audit.formatted-sql-query",
+      "message": "Python \u2014 SQL injection (string format)",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-89"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The code is vulnerable to SQL injection attacks because it directly inserts user input into the SQL query without proper sanitization.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -3,6 +3,6 @@\n \n def get_user(conn, username):\n     cur = conn.cursor()\n-    query = \"SELECT * FROM users WHERE username = '%s'\" % username\n-    cur.execute(query)\n-    return cur.fetchone()\n+    query = \"SELECT * FROM users WHERE username = ?\"\n+    cur.execute(query, (username,))\n+    return cur.fetchone()",
+    "patched_code": "import sqlite3\n\n\ndef get_user(conn, username):\n    cur = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cur.execute(query, (username,))\n    return cur.fetchone()",
+    "verification_test": "import unittest\nfrom app import get_user\n\nclass TestGetUser(unittest.TestCase):\n    def test_sql_injection(self):\n        conn = sqlite3.connect(':memory:')\n        conn.execute('CREATE TABLE users (username TEXT)')\n        conn.execute('INSERT INTO users (username) VALUES (?)', ('admin',))\n        result = get_user(conn, \"' OR '1'='1\")\n        self.assertIsNone(result)\n\nif __name__ == '__main__':\n    unittest.main()",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B608', 'semgrep:python.lang.security.audit.formatted-sql-query.formatted-sql-query', 'semgrep:python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "py-cmdi",
+    "name": "Python \u2014 OS command injection",
+    "original_code": "import os\n\n\ndef ping(host):\n    os.system(\"ping -c 1 \" + host)\n",
+    "time_s": 47.2,
+    "finding": {
+      "rule_id": "python.lang.security.audit.dangerous-os-system",
+      "message": "Python \u2014 OS command injection",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-78"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The root cause of the vulnerability is the use of user-controlled input in the os.system function without proper sanitization, allowing an attacker to inject malicious commands.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -1,5 +1,5 @@\n-import os\n+import subprocess\n \n \n def ping(host):\n-    os.system(\"ping -c 1 \" + host)\n+    subprocess.run(['ping', '-c', '1', host], shell=False)",
+    "patched_code": "import subprocess\n\n\ndef ping(host):\n    subprocess.run(['ping', '-c', '1', host], shell=False)",
+    "verification_test": "import subprocess\n\n\ndef test_ping_command_injection():\n    try:\n        result = subprocess.run(['ping', '-c', '1', '127.0.0.1'], capture_output=True, text=True, check=True)\n        assert '127.0.0.1' in result.stdout\n    except subprocess.CalledProcessError as e:\n        assert False, f'Ping command failed: {e}'\n\ntest_ping_command_injection()",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [
+        "bandit:B404",
+        "bandit:B603",
+        "bandit:B607"
+      ],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B605', 'semgrep:vulnfix-python-arg-to-shell']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "py-eval",
+    "name": "Python \u2014 code injection (eval)",
+    "original_code": "def compute(expr):\n    return eval(expr)\n",
+    "time_s": 44.0,
+    "finding": {
+      "rule_id": "python.lang.security.audit.eval-detected",
+      "message": "Python \u2014 code injection (eval)",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-95"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The eval() function is used to evaluate a string as a Python expression, which can lead to code injection attacks if the input is not properly sanitized.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -1,2 +1,4 @@\n+import ast\n+\n def compute(expr):\n-    return eval(expr)\n+    return ast.literal_eval(expr)",
+    "patched_code": "import ast\n\ndef compute(expr):\n    return ast.literal_eval(expr)",
+    "verification_test": "def test_compute():\n    assert compute('1 + 2') == 3\n    assert compute('[1, 2, 3]') == [1, 2, 3]\n    assert compute('\"hello\"') == \"hello\"\n    try:\n        compute('os.system(\"rm -rf /\")')\n        assert False, \"Expected a ValueError\"\n    except ValueError:\n        pass\n\ntest_compute()",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B307', 'semgrep:python.lang.security.audit.eval-detected.eval-detected', 'semgrep:vulnfix-python-arg-to-eval']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "py-md5",
+    "name": "Python \u2014 weak hash for password (MD5)",
+    "original_code": "import hashlib\n\n\ndef hash_password(pw):\n    return hashlib.md5(pw.encode()).hexdigest()\n",
+    "time_s": 42.0,
+    "finding": {
+      "rule_id": "python.lang.security.audit.md5-used-as-password",
+      "message": "Python \u2014 weak hash for password (MD5)",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-327"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The root cause of the vulnerability is the use of the insecure MD5 hashing algorithm in the hash_password function, which makes it vulnerable to collisions and preimage attacks.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -1,5 +1,5 @@\n-import hashlib\n+import bcrypt\n \n \n def hash_password(pw):\n-    return hashlib.md5(pw.encode()).hexdigest()\n+    return bcrypt.hashpw(pw.encode(), bcrypt.gensalt())",
+    "patched_code": "import bcrypt\n\n\ndef hash_password(pw):\n    return bcrypt.hashpw(pw.encode(), bcrypt.gensalt())",
+    "verification_test": "import bcrypt\n\n\ndef test_hash_password():\n    password = 'secure_password123'\n    hashed_password = hash_password(password)\n    assert bcrypt.checkpw(password.encode(), hashed_password)\n\nif __name__ == '__main__':\n    test_hash_password()",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B324']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "py-secret",
+    "name": "Python \u2014 hardcoded credentials",
+    "original_code": "import requests\n\nAPI_TOKEN = \"sk-live-9f8b7a6c5d4e3f2a1b0c9d8e7f6a5b4c\"\n\n\ndef call():\n    return requests.get(\"https://api.example.com\",\n                        headers={\"Authorization\": API_TOKEN})\n",
+    "time_s": 50.0,
+    "finding": {
+      "rule_id": "python.lang.security.audit.hardcoded-password",
+      "message": "Python \u2014 hardcoded credentials",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-798"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The hardcoded API token in the API_TOKEN variable is exposed in the request headers, allowing unauthorized access to the API if the token is compromised.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -1,8 +1,11 @@\n+import os\n import requests\n \n-API_TOKEN = \"sk-live-9f8b7a6c5d4e3f2a1b0c9d8e7f6a5b4c\"\n+API_TOKEN = os.getenv('API_TOKEN')\n+\n+if API_TOKEN is None:\n+    raise ValueError('API_TOKEN environment variable is not set')\n \n \n def call():\n-    return requests.get(\"https://api.example.com\",\n-                        headers={\"Authorization\": API_TOKEN})\n+    return requests.get('https://api.example.com', auth=('api_key', API_TOKEN))",
+    "patched_code": "import os\nimport requests\n\nAPI_TOKEN = os.getenv('API_TOKEN')\n\nif API_TOKEN is None:\n    raise ValueError('API_TOKEN environment variable is not set')\n\n\ndef call():\n    return requests.get('https://api.example.com', auth=('api_key', API_TOKEN))",
+    "verification_test": "import os\nimport subprocess\n\n# Set the API_TOKEN environment variable\nos.environ['API_TOKEN'] = 'test_token'\n\n# Run the patched app.py\nresult = subprocess.run(['python', 'app.py'], capture_output=True, text=True)\n\n# Check if the request was successful\nassert '200 OK' in result.stdout",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [
+        "bandit:B113"
+      ],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B105']; ignored unrelated ['bandit:B113']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "py-path",
+    "name": "Python \u2014 path traversal",
+    "original_code": "def read_file(filename):\n    with open(\"/var/data/\" + filename) as f:\n        return f.read()\n",
+    "time_s": 74.9,
+    "finding": {
+      "rule_id": "python.lang.security.audit.path-traversal",
+      "message": "Python \u2014 path traversal",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-22"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The function read_file is vulnerable to path traversal attacks due to the concatenation of the directory path and the filename without proper validation, allowing an attacker to manipulate the filename parameter to access files outside the intended directory.",
+    "patch_diff": "--- a/app.py\n+++ b/app.py\n@@ -1,3 +1,8 @@\n+from pathlib import Path\n+\n def read_file(filename):\n-    with open(\"/var/data/\" + filename) as f:\n-        return f.read()\n+    safe_path = Path('/var/data/') / Path(filename)\n+    if not safe_path.is_absolute() or not safe_path.parent == Path('/var/data/'):\n+        raise ValueError('Invalid filename')\n+    with open(safe_path) as f:\n+        return f.read()",
+    "patched_code": "from pathlib import Path\n\ndef read_file(filename):\n    safe_path = Path('/var/data/') / Path(filename)\n    if not safe_path.is_absolute() or not safe_path.parent == Path('/var/data/'):\n        raise ValueError('Invalid filename')\n    with open(safe_path) as f:\n        return f.read()",
+    "verification_test": "import app\n\ntry:\n    app.read_file('../etc/passwd')\nexcept ValueError:\n    print('Test passed: Path traversal prevented')\nelse:\n    print('Test failed: Path traversal not prevented')",
+    "validation": {
+      "validated": false,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [
+        "semgrep:vulnfix-python-arg-to-open"
+      ],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:vulnfix-python-arg-to-open']"
+    },
+    "attempts": 2,
+    "status": "unvalidated"
+  },
+  {
+    "id": "java-sqli",
+    "name": "Java \u2014 SQL injection (Statement concat)",
+    "original_code": "import java.sql.*;\n\npublic class Example {\n    public ResultSet getUser(Connection conn, String name) throws SQLException {\n        Statement st = conn.createStatement();\n        return st.executeQuery(\"SELECT * FROM users WHERE name = '\" + name + \"'\");\n    }\n}\n",
+    "time_s": 54.7,
+    "finding": {
+      "rule_id": "java.lang.security.audit.sqli.jdbc-sqli",
+      "message": "Java \u2014 SQL injection (Statement concat)",
+      "file_path": "Example.java",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-89"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "Direct concatenation of user input into SQL query, allowing SQL injection attacks.",
+    "patch_diff": "--- a/Example.java\n+++ b/Example.java\n@@ -2,7 +2,8 @@\n \n public class Example {\n     public ResultSet getUser(Connection conn, String name) throws SQLException {\n-        Statement st = conn.createStatement();\n-        return st.executeQuery(\"SELECT * FROM users WHERE name = '\" + name + \"'\");\n+        PreparedStatement ps = conn.prepareStatement(\"SELECT * FROM users WHERE name = ?\");\n+        ps.setString(1, name);\n+        return ps.executeQuery();\n     }\n-}\n+}",
+    "patched_code": "import java.sql.*;\n\npublic class Example {\n    public ResultSet getUser(Connection conn, String name) throws SQLException {\n        PreparedStatement ps = conn.prepareStatement(\"SELECT * FROM users WHERE name = ?\");\n        ps.setString(1, name);\n        return ps.executeQuery();\n    }\n}",
+    "verification_test": "import java.sql.*;\n\npublic class TestExample {\n    public static void main(String[] args) {\n        try {\n            Connection conn = DriverManager.getConnection(\"jdbc:postgresql://localhost/test\", \"user\", \"password\");\n            Example example = new Example();\n            ResultSet rs = example.getUser(conn, \"' OR '1'='1\");\n            if (rs.next()) {\n                System.out.println(\"Test failed\");\n            } else {\n                System.out.println(\"Test passed\");\n            }\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:java.lang.security.audit.formatted-sql-string.formatted-sql-string', 'semgrep:java.lang.security.audit.sqli.jdbc-sqli.jdbc-sqli']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "java-cmdi",
+    "name": "Java \u2014 command injection (Runtime.exec)",
+    "original_code": "public class Example {\n    public void ping(String host) throws Exception {\n        Runtime.getRuntime().exec(\"ping -c 1 \" + host);\n    }\n}\n",
+    "time_s": 69.5,
+    "finding": {
+      "rule_id": "java.lang.security.audit.command-injection",
+      "message": "Java \u2014 command injection (Runtime.exec)",
+      "file_path": "Example.java",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [
+        "CWE-78"
+      ],
+      "snippet": ""
+    },
+    "root_cause": "The root cause of this vulnerability is the lack of proper input sanitization when using Runtime.exec() to execute a command, allowing an attacker to inject arbitrary commands.",
+    "patch_diff": "--- a/Example.java\n+++ b/Example.java\n@@ -1,5 +1,19 @@\n+import java.io.IOException;\n+import java.util.Arrays;\n+\n public class Example {\n-    public void ping(String host) throws Exception {\n-        Runtime.getRuntime().exec(\"ping -c 1 \" + host);\n+    public void ping(String host) throws IOException {\n+        if (host == null || host.isEmpty() || !isValidHost(host)) {\n+            throw new IllegalArgumentException(\"Invalid host\");\n+        }\n+        ProcessBuilder pb = new ProcessBuilder(Arrays.asList(\"ping\", \"-c\", \"1\", host));\n+        pb.redirectErrorStream(true);\n+        Process process = pb.start();\n+        process.waitFor();\n     }\n-}\n+\n+    private boolean isValidHost(String host) {\n+        // Simple validation to ensure the host does not contain any special characters\n+        return host.matches(\"^[a-zA-Z0-9.-]+$\");\n+    }\n+}",
+    "patched_code": "import java.io.IOException;\nimport java.util.Arrays;\n\npublic class Example {\n    public void ping(String host) throws IOException {\n        if (host == null || host.isEmpty() || !isValidHost(host)) {\n            throw new IllegalArgumentException(\"Invalid host\");\n        }\n        ProcessBuilder pb = new ProcessBuilder(Arrays.asList(\"ping\", \"-c\", \"1\", host));\n        pb.redirectErrorStream(true);\n        Process process = pb.start();\n        process.waitFor();\n    }\n\n    private boolean isValidHost(String host) {\n        // Simple validation to ensure the host does not contain any special characters\n        return host.matches(\"^[a-zA-Z0-9.-]+$\");\n    }\n}",
+    "verification_test": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\n\npublic class ExampleTest {\n    @Test\n    public void testPingWithInvalidHost() throws Exception {\n        Example example = new Example();\n        assertThrows(IllegalArgumentException.class, () -> example.ping(\"invalid@host\"));\n    }\n\n    @Test\n    public void testPingWithValidHost() throws Exception {\n        Example example = new Example();\n        example.ping(\"example.com\");\n    }\n}",
+    "validation": {
+      "validated": true,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": false,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:vulnfix-java-arg-to-exec']"
+    },
+    "attempts": 1,
+    "status": "validated"
+  },
+  {
+    "id": "neg-safe-sql",
+    "name": "Negative control \u2014 already parameterized query",
+    "original_code": "import sqlite3\n\n\ndef get_user(conn, username):\n    cur = conn.cursor()\n    cur.execute(\"SELECT * FROM users WHERE username = ?\", (username,))\n    return cur.fetchone()\n",
+    "time_s": 63.0,
+    "finding": {
+      "rule_id": "(none)",
+      "message": "Negative control \u2014 already parameterized query",
+      "file_path": "app.py",
+      "start_line": 1,
+      "end_line": null,
+      "severity": "warning",
+      "cwe": [],
+      "snippet": ""
+    },
+    "root_cause": "The function get_user is vulnerable to SQL injection attacks because it directly executes a SQL query with user input, making it susceptible to injection.",
+    "patch_diff": "",
+    "patched_code": "import sqlite3\n\n\ndef get_user(conn, username):\n    cur = conn.cursor()\n    cur.execute(\"SELECT * FROM users WHERE username = ?\", (username,))\n    return cur.fetchone()\n",
+    "verification_test": "import unittest\nimport sqlite3\n\nclass TestGetUser(unittest.TestCase):\n    def test_sql_injection(self):\n        conn = sqlite3.connect(':memory:')\n        conn.execute('CREATE TABLE users (username TEXT)')\n        conn.execute('INSERT INTO users (username) VALUES (?)', ('admin',))\n        conn.execute('INSERT INTO users (username) VALUES (?)', ('admin; DROP TABLE users; --',))\n        self.assertIsNotNone(get_user(conn, 'admin'))\n        self.assertIsNone(get_user(conn, 'admin; DROP TABLE users; --'))\n\nif __name__ == '__main__':\n    unittest.main()\n",
+    "validation": {
+      "validated": false,
+      "ran_semgrep": true,
+      "remaining_rule_ids": [],
+      "new_findings": [],
+      "inconclusive": true,
+      "guardrail_issues": [],
+      "notes": "semgrep [vulnfix_rules.yml,p/default] + bandit: no hit in the original matches this finding; fix cannot be auto-verified"
+    },
+    "attempts": 1,
+    "status": "inconclusive"
+  }
+]

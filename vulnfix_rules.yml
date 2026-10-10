@@ -1,0 +1,77 @@
+rules:
+  - id: vulnfix-python-arg-to-shell
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: A function argument reaches a shell command (CWE-78). Pass an argument list without a shell instead.
+    metadata:
+      cwe: "CWE-78"
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              def $FUNC(..., $ARG, ...):
+                ...
+          - pattern: $ARG
+    pattern-sinks:
+      - pattern: os.system(...)
+      - pattern: os.popen(...)
+      - pattern: subprocess.$CALL(..., shell=True, ...)
+
+  - id: vulnfix-python-arg-to-eval
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: A function argument reaches eval/exec (CWE-95).
+    metadata:
+      cwe: "CWE-95"
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              def $FUNC(..., $ARG, ...):
+                ...
+          - pattern: $ARG
+    pattern-sinks:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: vulnfix-python-arg-to-open
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: A function argument is used as a file path without checking it stays inside the base folder (CWE-22).
+    metadata:
+      cwe: "CWE-22"
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              def $FUNC(..., $ARG, ...):
+                ...
+          - pattern: $ARG
+    pattern-sinks:
+      - patterns:
+          - pattern: open($PATH, ...)
+          - focus-metavariable: $PATH
+    pattern-sanitizers:
+      - pattern: os.path.basename(...)
+      - by-side-effect: true
+        patterns:
+          - pattern: $P.is_relative_to(...)
+          - focus-metavariable: $P
+
+  - id: vulnfix-java-arg-to-exec
+    mode: taint
+    languages: [java]
+    severity: ERROR
+    message: A method argument reaches Runtime.exec (CWE-78). Use ProcessBuilder with separate arguments.
+    metadata:
+      cwe: "CWE-78"
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              $RET $METHOD(..., $TYPE $ARG, ...) {
+                ...
+              }
+          - pattern: $ARG
+    pattern-sinks:
+      - pattern: Runtime.getRuntime().exec(...)
+      - pattern: (Runtime $R).exec(...)

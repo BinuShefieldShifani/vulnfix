@@ -1,0 +1,12 @@
+id,status,attempts,patch_lines,time_s,notes
+py-sqli,validated,1.0,12.0,62.9,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B608', 'semgrep:python.lang.security.audit.formatted-sql-query.formatted-sql-query', 'semgrep:python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query']"
+py-cmdi,validated,1.0,10.0,47.2,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B605', 'semgrep:vulnfix-python-arg-to-shell']"
+py-eval,validated,1.0,8.0,44.0,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B307', 'semgrep:python.lang.security.audit.eval-detected.eval-detected', 'semgrep:vulnfix-python-arg-to-eval']"
+py-pickle,"ERROR: prediction aborted, token repeat limit reached (status code: -1)",,,21.2,
+py-md5,validated,1.0,10.0,42.0,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B324']"
+py-secret,validated,1.0,17.0,50.0,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['bandit:B105']; ignored unrelated ['bandit:B113']"
+py-path,unvalidated,2.0,13.0,74.9,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:vulnfix-python-arg-to-open']"
+py-yaml,"ERROR: prediction aborted, token repeat limit reached (status code: -1)",,,37.3,
+java-sqli,validated,1.0,14.0,54.7,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:java.lang.security.audit.formatted-sql-string.formatted-sql-string', 'semgrep:java.lang.security.audit.sqli.jdbc-sqli.jdbc-sqli']"
+java-cmdi,validated,1.0,25.0,69.5,"semgrep [vulnfix_rules.yml,p/default] + bandit: targeted ['semgrep:vulnfix-java-arg-to-exec']"
+neg-safe-sql,inconclusive,1.0,0.0,63.0,"semgrep [vulnfix_rules.yml,p/default] + bandit: no hit in the original matches this finding; fix cannot be auto-verified"
