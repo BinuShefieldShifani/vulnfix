@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import subprocess
 import tempfile
 
@@ -168,32 +169,38 @@ def _is_related(hit, finding_cwes):
 
 def _run_behavior_test(file_path, patched, behavior_test):
     """Run a caller-supplied behavior test against the patched code in the
-    sandbox. Returns "" if it passes (or cannot be run here), else a short
-    reason. Never raises. Only trusted, caller-provided tests are run."""
+    sandbox. Returns (issue, ran):
+        issue: "" if the test passed, else a short reason the patch is rejected.
+        ran:   True if the test actually executed, False if it was skipped.
+    A skip never silently passes: the caller records it in the notes.
+    Only trusted, caller-provided tests are run. Never raises."""
     if not behavior_test:
-        return ""
+        return "", False
+    # Make sure the repo root is importable so eval.sandbox loads wherever the
+    # validator runs (harness subprocess, CI, laptop, Kaggle).
+    if _HERE not in sys.path:
+        sys.path.insert(0, _HERE)
     try:
         from eval.sandbox import run_python, run_java
-    except Exception:
-        return ""  # sandbox not importable in this environment; skip quietly
+    except Exception as e:  # noqa: BLE001
+        return f"behavior test skipped (sandbox import failed: {type(e).__name__})", False
     ext = os.path.splitext(file_path)[1].lower()
     try:
         if ext == ".py":
             r = run_python(patched, behavior_test, timeout=20.0,
                            extra_env=behavior_test_env(behavior_test))
-            out = r.output or ""
-            if "BEHAVIOR_OK" in out and "BEHAVIOR_FAIL" not in out:
-                return ""
-            return "behavior test failed"
-        if ext == ".java":
+        elif ext == ".java":
             r = run_java(patched, behavior_test, timeout=60.0)
-            out = r.output or ""
-            if "BEHAVIOR_OK" in out:
-                return ""
-            return "behavior test failed"
-    except Exception:
-        return ""  # a flaky test must not crash validation
-    return ""
+        else:
+            return "behavior test skipped (unsupported language)", False
+    except Exception as e:  # noqa: BLE001
+        return f"behavior test skipped (runner error: {type(e).__name__})", False
+
+    out = r.output or ""
+    if "BEHAVIOR_OK" in out and "BEHAVIOR_FAIL" not in out:
+        return "", True
+    # it ran and did not clearly pass -> the patch broke behavior
+    return "behavior test failed", True
 
 
 def behavior_test_env(behavior_test):
@@ -253,10 +260,15 @@ def validator_node(state):
         return {"validation": vr, "validation_feedback": "", **extra}
 
     # --- Normal case: related hits gone, nothing new, guardrails ok ---
-    behavior_issue = ""
+    behavior_issue, behavior_ran = "", False
+    behavior_skip = ""
     if not still and not new and not guard:
-        behavior_issue = _run_behavior_test(
+        res, behavior_ran = _run_behavior_test(
             f.file_path, patched, state.get("behavior_test"))
+        if res and behavior_ran:
+            behavior_issue = res            # real failure -> blocks validation
+        elif res and not behavior_ran:
+            behavior_skip = res             # could not run -> visible, does not block
     validated = (not still) and (not new) and (not guard) and (not behavior_issue)
     feedback = ""
     if not validated:
@@ -274,6 +286,8 @@ def validator_node(state):
     note = f"{scanners}: targeted {sorted(targets)}"
     if behavior_issue:
         note += "; behavior test failed"
+    if behavior_skip:
+        note += "; " + behavior_skip
     if ignored:
         note += f"; ignored unrelated {ignored}"
     vr = ValidationResult(
