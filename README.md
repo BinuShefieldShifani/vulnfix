@@ -121,6 +121,63 @@ Time per case: 43 to 87 seconds, except pickle at 321 seconds, where repeat loop
 
 Raw output for runs 2 to 4 and the pickle/YAML retest, including every patch, root cause and generated test, is in [`results/`](results).
 
+## Measured evaluation (5 repeats per case)
+
+The narrative runs above read each patch by hand. That doesn't scale and it hides
+variance, so the project now has an automated harness ([`eval/`](eval)) that runs
+every case 5 times and scores each patch on four independent things:
+
+- **compiles** (`py_compile` / `javac`)
+- **truly fixed** — an exploit is run against the patched code; if the attack still
+  works, the fix failed, whatever the scanners said
+- **behavior preserved** — normal inputs still produce the right outputs
+- **validator verdict** — what VulnFix itself decided
+
+The exploit and behavior checks are fixed oracles in [`eval/cases.py`](eval/cases.py),
+written independently of the model and the validator and proven correct in CI against
+known-good and known-bad patches. Raw output is in
+[`results/eval/run5/`](results/eval/run5).
+
+### Results, 11 cases x 5 repeats
+
+| Case | validated | truly fixed | behavior ok | validated but broken |
+|---|---|---|---|---|
+| py-sqli | 5/5 | 5/5 | 5/5 | 0 |
+| py-cmdi | 5/5 | 5/5 | n/a | 0 |
+| py-yaml | 5/5 | 5/5 | 5/5 | 0 |
+| java-sqli | 5/5 | n/a | n/a | 0 |
+| py-secret | 5/5 | 5/5 | n/a | 0 |
+| py-md5 | 5/5 | 4/5 | 4/5 | 1/5 |
+| py-eval | 5/5 | 5/5 (safe) | 0/5 | 5/5 |
+| java-cmdi | 4/5 | 4/5 | n/a | 0 |
+| py-path | 1/5 | 4/5 | 0/5 | 1/5 |
+| py-pickle | 1/5 | 1/5 | n/a | 0 |
+| neg-safe-sql (control) | 0/5 (inconclusive) | correctly left alone | — | 0 |
+
+### What the numbers say
+
+**The security side of the validator holds.** Across all 55 runs, it never once marked
+an exploitable patch as "validated". The f-string command-injection bypass that fooled
+the June validator is now caught every time (py-cmdi: 5/5 fixed and validated).
+
+**The correctness side is the real gap.** "Validated" means secure, not working. The
+clearest case is py-eval: validated 5/5, but `ast.literal_eval` breaks `compute("2+3")`
+every single time, so behavior is correct in 0/5 runs. No security scanner would ever
+catch this. py-md5 (a hardcoded salt) and py-path (a check that rejects valid files) show
+the same thing at lower rates.
+
+**Some cases are just hard for a 7B model.** py-pickle is fixed in only 1/5 runs: the
+model keeps swapping `pickle` for `dill`, which has the same flaw. The validator correctly
+rejects it every time, so nothing unsafe ships; the fix rate is low but the false-pass rate
+is zero.
+
+**The negative control behaves.** The already-safe code is never marked "validated"
+(always inconclusive, since there is nothing to fix), though the model still edits it on
+most runs, which is why "skip the model when there is nothing to fix" is on the list below.
+
+So the headline: **security validation works; correctness validation does not exist yet.**
+That is what the next steps target.
+
 ### What I'd change next
 
 - **Run the tests.** Execute the generated verification test in a sandbox. The tests need checking too: in one run the generated SQL injection test expected an exception that the correct fix never raises, so it would have failed a good patch.
