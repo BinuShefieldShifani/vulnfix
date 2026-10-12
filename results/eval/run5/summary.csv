@@ -1,0 +1,12 @@
+case_id,repeats,errors,validated_rate,truly_fixed_rate,exploit_compile_fail_rate,behavior_ok_rate,compile_rate,validated_but_exploitable,validated_but_broken
+py-sqli,5,0,1.0,1.0,0.0,1.0,1.0,0.0,0.0
+py-cmdi,5,0,0.8,1.0,0.0,,1.0,0.0,
+py-eval,5,0,1.0,1.0,0.0,0.0,1.0,0.0,1.0
+py-pickle,5,0,0.2,0.2,0.0,,1.0,0.0,
+py-md5,5,0,1.0,0.8,0.0,0.6,1.0,0.0,0.4
+py-secret,5,0,1.0,1.0,0.0,,1.0,0.0,
+py-path,5,0,0.0,0.4,0.2,0.0,0.8,0.0,0.0
+py-yaml,5,0,1.0,1.0,0.0,1.0,1.0,0.0,0.0
+java-sqli,5,0,1.0,,,,1.0,,
+java-cmdi,5,0,0.8,0.8,0.2,,0.8,0.0,
+neg-safe-sql,5,0,0.0,0.8,0.0,1.0,1.0,0.0,0.0
