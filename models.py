@@ -42,6 +42,7 @@ class GraphState(TypedDict, total=False):
     that are merged into this state."""
     finding: Finding
     source_code: str
+    behavior_test: str
     retrieved_context: str
     analysis: str
     root_cause: str

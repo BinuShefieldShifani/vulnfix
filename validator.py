@@ -166,6 +166,45 @@ def _is_related(hit, finding_cwes):
     return bool(hit["cwes"] & wanted)
 
 
+def _run_behavior_test(file_path, patched, behavior_test):
+    """Run a caller-supplied behavior test against the patched code in the
+    sandbox. Returns "" if it passes (or cannot be run here), else a short
+    reason. Never raises. Only trusted, caller-provided tests are run."""
+    if not behavior_test:
+        return ""
+    try:
+        from eval.sandbox import run_python, run_java
+    except Exception:
+        return ""  # sandbox not importable in this environment; skip quietly
+    ext = os.path.splitext(file_path)[1].lower()
+    try:
+        if ext == ".py":
+            r = run_python(patched, behavior_test, timeout=20.0,
+                           extra_env=behavior_test_env(behavior_test))
+            out = r.output or ""
+            if "BEHAVIOR_OK" in out and "BEHAVIOR_FAIL" not in out:
+                return ""
+            return "behavior test failed"
+        if ext == ".java":
+            r = run_java(patched, behavior_test, timeout=60.0)
+            out = r.output or ""
+            if "BEHAVIOR_OK" in out:
+                return ""
+            return "behavior test failed"
+    except Exception:
+        return ""  # a flaky test must not crash validation
+    return ""
+
+
+def behavior_test_env(behavior_test):
+    """If the behavior test reads VULNFIX_BASE, give it a fresh writable dir."""
+    if "VULNFIX_BASE" in (behavior_test or ""):
+        d = tempfile.mkdtemp(prefix="vulnfix_btest_")
+        return {"VULNFIX_BASE": os.path.join(d, "data")}
+    return None
+
+
+
 def validator_node(state):
     f: Finding = state["finding"]
     original = state["source_code"]
@@ -214,7 +253,11 @@ def validator_node(state):
         return {"validation": vr, "validation_feedback": "", **extra}
 
     # --- Normal case: related hits gone, nothing new, guardrails ok ---
-    validated = not still and not new and not guard
+    behavior_issue = ""
+    if not still and not new and not guard:
+        behavior_issue = _run_behavior_test(
+            f.file_path, patched, state.get("behavior_test"))
+    validated = (not still) and (not new) and (not guard) and (not behavior_issue)
     feedback = ""
     if not validated:
         bits = []
@@ -224,9 +267,13 @@ def validator_node(state):
             bits.append("still flagged: " + ", ".join(still[:3]))
         if new:
             bits.append("patch introduced: " + ", ".join(new[:3]))
+        if behavior_issue:
+            bits.append(behavior_issue)
         feedback = " | ".join(bits) or "fix not confirmed by re-scan"
 
     note = f"{scanners}: targeted {sorted(targets)}"
+    if behavior_issue:
+        note += "; behavior test failed"
     if ignored:
         note += f"; ignored unrelated {ignored}"
     vr = ValidationResult(

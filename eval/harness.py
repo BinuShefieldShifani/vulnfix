@@ -53,7 +53,8 @@ def run_evaluation(repeats: int = 5, run_label: str = "run",
                 t0 = time.perf_counter()
                 row = {"case_id": c["id"], "repeat": i, "language": c["language"]}
                 try:
-                    r = remediate_finding(finding, c["code"])
+                    bt = CASE_ORACLES[c["id"]]["behavior_driver"]
+                    r = remediate_finding(finding, c["code"], behavior_test=bt)
                     elapsed = time.perf_counter() - t0
                     v = r.validation
                     score = score_patch(c["id"], r.patched_code or c["code"])

@@ -73,10 +73,12 @@ def build_graph():
     return b.compile()
 
 
-def remediate_finding(finding: Finding, source_code: str) -> RemediationResult:
+def remediate_finding(finding: Finding, source_code: str,
+                      behavior_test: str = None) -> RemediationResult:
     graph = build_graph()
     final = graph.invoke(
-        {"finding": finding, "source_code": source_code, "attempts": 0},
+        {"finding": finding, "source_code": source_code, "attempts": 0,
+         "behavior_test": behavior_test},
         config={"recursion_limit": 25},
     )
     return final["result"]
