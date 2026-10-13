@@ -1,0 +1,9 @@
+case_id,repeats,errors,validated_rate,truly_fixed_rate,exploit_compile_fail_rate,behavior_ok_rate,compile_rate,validated_but_exploitable,validated_but_broken
+py-ssrf,5,0,0.0,1.0,0.0,,1.0,0.0,
+py-weakrand,5,0,1.0,1.0,0.0,1.0,1.0,0.0,0.0
+py-openredirect,5,0,0.0,0.0,0.0,0.0,1.0,0.0,0.0
+py-tmpfile,5,0,0.8,1.0,0.0,0.8,1.0,0.0,0.0
+py-chmod,5,0,1.0,1.0,0.0,1.0,1.0,0.0,0.0
+py-ldap,5,0,0.0,0.0,0.4,0.2,0.6,0.0,0.0
+java-xxe,5,0,1.0,,,,1.0,,
+java-deser,5,0,0.0,,,,0.0,,
