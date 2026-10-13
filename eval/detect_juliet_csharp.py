@@ -53,20 +53,27 @@ def _cwe_from_name(fname):
 
 
 def _method_spans(text):
-    """Return list of (name, start_line, end_line) for bad()/good*() methods.
-    Uses brace counting. Lines are 1-based."""
+    """Find bad()/good*() methods in real Juliet C#. Case-insensitive on the
+    method name (Juliet uses Bad/Good with a capital), tolerant of modifiers
+    (public/private/override/virtual/static/async) and of the #if preprocessor
+    lines. Returns (kind, start_line, end_line), kind in {bad, good}, 1-based."""
     lines = text.splitlines()
     spans = []
     i = 0
+    sig = re.compile(
+        r"\b(?:public|private|protected|internal|static|override|virtual|sealed|async|\s)*"
+        r"(?:void|string|int|object|bool|Task|[A-Za-z_][\w<>\[\],\. ]*?)\s+"
+        r"(Bad|Good\w*)\s*\(", re.IGNORECASE)
     while i < len(lines):
-        m = re.search(r"\b(public|private|protected|internal)?\s*(void|string|int|object|bool)?\s*"
-                      r"(bad|good\w*)\s*\(", lines[i])
+        m = sig.search(lines[i])
         if m:
-            name = m.group(3)
-            # find opening brace, then match to close
+            low = m.group(1).lower()
+            name = "bad" if low == "bad" else ("good" if low.startswith("good") else None)
+            if name is None:
+                i += 1
+                continue
             depth = 0
             started = False
-            start = i + 1
             j = i
             while j < len(lines):
                 depth += lines[j].count("{") - lines[j].count("}")
@@ -75,7 +82,7 @@ def _method_spans(text):
                 if started and depth <= 0:
                     break
                 j += 1
-            spans.append((name, start, j + 1))
+            spans.append((name, i + 1, j + 1))
             i = j + 1
         else:
             i += 1
