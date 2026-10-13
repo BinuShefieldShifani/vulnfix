@@ -178,6 +178,70 @@ most runs, which is why "skip the model when there is nothing to fix" is on the 
 So the headline: **security validation works; correctness validation does not exist yet.**
 That is what the next steps target.
 
+## Closing the gap: behavior validation and tracing
+
+The first measured evaluation (run5) showed the validator was good at security and
+blind to correctness: it approved patches that were secure but broke the function.
+Two changes fixed that and made the pipeline observable.
+
+### 1. The validator now checks behavior, not just security
+
+When a behavior test is supplied with a finding, a patch is validated only if it
+passes that test as well as the security re-scan and the compile check. The test is
+run in the sandbox, and a patch that breaks it is rejected and sent back to the
+retry loop. If no test is supplied, nothing changes, so there are no false failures
+on real-world findings that have no tests. The design choice: only run tests the
+caller provides, never tests the model wrote, because a model-written test can be
+wrong and fail a good patch.
+
+### 2. Optional MLflow tracing
+
+Turning on tracing (`run_evaluation(trace=True)`) captures every agent call through
+MLflow's LangChain autolog, stored in a local SQLite database. It is off by default
+and a no-op if MLflow is not installed, so it adds no dependency to the pipeline, the
+demo, or CI. Everything stays on the machine.
+
+### Before and after, 11 cases x 5 repeats each
+
+| | run5 (security only) | run7 (behavior gate) |
+|---|---|---|
+| validated but still exploitable | 0 / 55 | 0 / 55 |
+| validated but behavior broken | 3 cases (eval 5/5, md5 1/5, path 1/5) | **0 / 55** |
+
+In run5, py-eval was validated every time while `ast.literal_eval` broke
+`compute("2+3")` every time. In run7 the behavior gate rejects those patches, so
+py-eval validates only on the one run where the model produced a genuinely working
+fix. Across all 55 run7 cases, there is no case where "validated" hides an
+exploitable or broken patch. Raw data: [`results/eval/run7_traced/`](results/eval/run7_traced).
+
+So the validator now answers the question that matters: **is this patch secure and
+does it still work?**
+
+### Where the time goes (from the traces)
+
+Per-agent timing from the 55 run7 runs, read straight from the trace database
+([`eval/trace_summary.py`](eval/trace_summary.py)):
+
+| span | calls | total (s) | avg (s) |
+|---|---|---|---|
+| ChatOllama (all model calls) | 349 | 1203 | 3.45 |
+| validator | 70 | 891 | 12.7 |
+| patch_generator | 70 | 744 | 10.6 |
+| static_analyst | 110 | 296 | 2.7 |
+| root_cause | 55 | 179 | 3.2 |
+| retriever | 110 | 4 | 0.04 |
+
+Three things stand out. Validation now costs about as much wall-clock time as patch
+generation, because it runs Semgrep, Bandit, a compile and the behavior test; making
+validation trustworthy roughly doubled the per-case cost, which is a tradeoff worth
+stating. The retriever is almost free (0.04s), so the open question about retrieval
+is purely whether it improves patch quality, not whether it is worth the latency.
+And the gap between 70 patch/validate calls and 55 root-cause calls is the retry
+loop: 15 cases where the first patch failed validation and the model tried again.
+
+Token counts were not captured in this run (an autolog/Ollama quirk puts usage data
+where the summary tool does not yet read it); that is a known gap, not a measured zero.
+
 ### What I'd change next
 
 - **Run the tests.** Execute the generated verification test in a sandbox. The tests need checking too: in one run the generated SQL injection test expected an exception that the correct fix never raises, so it would have failed a good patch.
