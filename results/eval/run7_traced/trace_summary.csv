@@ -1,0 +1,10 @@
+span,calls,total_s,avg_s,prompt_tokens,completion_tokens
+LangGraph,110,2114.6,19.22,0,0
+ChatOllama,349,1203.0,3.45,0,0
+validator,70,890.9,12.73,0,0
+patch_generator,70,744.4,10.63,0,0
+static_analyst,110,295.7,2.69,0,0
+root_cause,55,178.5,3.24,0,0
+retriever,110,4.0,0.04,0,0
+_route_after_validation,70,0.1,0.0,0,0
+finalize,55,0.1,0.0,0,0
