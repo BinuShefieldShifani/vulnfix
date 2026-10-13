@@ -13,3 +13,5 @@ venv/
 # Local databases and model files
 chroma_db/
 *.sqlite3
+mlruns/
+mlflow.db
