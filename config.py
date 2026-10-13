@@ -30,7 +30,7 @@ class Settings:
     RETRIEVE_K: int = int(os.getenv("RETRIEVE_K", "4"))
 
     # Validation
-    SEMGREP_CONFIG: str = os.getenv("SEMGREP_CONFIG", "vulnfix_rules.yml,p/default,p/security-audit,p/python,p/java")
+    SEMGREP_CONFIG: str = os.getenv("SEMGREP_CONFIG", "vulnfix_rules.yml,p/default,p/security-audit,p/owasp-top-ten,p/cwe-top-25,p/python,p/java")
     MAX_PATCH_ATTEMPTS: int = int(os.getenv("MAX_PATCH_ATTEMPTS", "2"))
 
 
