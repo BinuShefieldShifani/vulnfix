@@ -39,11 +39,17 @@ def _finding_for(case):
 
 def run_evaluation(repeats: int = 5, run_label: str = "run",
                    case_ids=None, out_root: str = "results/eval",
-                   trace: bool = False):
+                   trace: bool = False, case_source: str = "home"):
     if trace:
         from eval.tracing import enable_tracing
         enable_tracing(f"vulnfix-{run_label}")
-    cases = [c for c in TEST_CASES if (case_ids is None or c["id"] in case_ids)]
+    if case_source == "heldout":
+        from eval.cases_heldout import HELDOUT_CASES, HELDOUT_ORACLES
+        _all_cases, _oracles = HELDOUT_CASES, HELDOUT_ORACLES
+    else:
+        from eval.cases import CASE_ORACLES
+        _all_cases, _oracles = TEST_CASES, CASE_ORACLES
+    cases = [c for c in _all_cases if (case_ids is None or c["id"] in case_ids)]
     out_dir = os.path.join(out_root, run_label)
     os.makedirs(out_dir, exist_ok=True)
     runs_path = os.path.join(out_dir, "runs.jsonl")
@@ -57,7 +63,7 @@ def run_evaluation(repeats: int = 5, run_label: str = "run",
                 t0 = time.perf_counter()
                 row = {"case_id": c["id"], "repeat": i, "language": c["language"]}
                 try:
-                    bt = CASE_ORACLES[c["id"]]["behavior_driver"]
+                    bt = _oracles[c["id"]]["behavior_driver"]
                     r = remediate_finding(finding, c["code"], behavior_test=bt)
                     elapsed = time.perf_counter() - t0
                     v = r.validation
@@ -85,8 +91,8 @@ def run_evaluation(repeats: int = 5, run_label: str = "run",
                       f"exploit={row.get('exploit')} "
                       f"behavior={row.get('behavior')}", flush=True)
 
-    has_exploit = {c['id']: CASE_ORACLES[c['id']]['exploit_driver'] is not None for c in cases}
-    has_behavior = {c['id']: CASE_ORACLES[c['id']]['behavior_driver'] is not None for c in cases}
+    has_exploit = {c['id']: _oracles[c['id']]['exploit_driver'] is not None for c in cases}
+    has_behavior = {c['id']: _oracles[c['id']]['behavior_driver'] is not None for c in cases}
     summary = _summarize_rows(per_case, repeats, has_exploit, has_behavior)
     _write_summary_csv(summary, os.path.join(out_dir, "summary.csv"))
     return summary

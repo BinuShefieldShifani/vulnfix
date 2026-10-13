@@ -20,6 +20,11 @@ import tempfile
 from dataclasses import dataclass, asdict
 
 from eval.cases import CASE_ORACLES
+try:
+    from eval.cases_heldout import HELDOUT_ORACLES
+    _ALL_ORACLES = {**CASE_ORACLES, **HELDOUT_ORACLES}
+except Exception:
+    _ALL_ORACLES = CASE_ORACLES
 from eval.sandbox import run_python, run_java
 
 
@@ -55,7 +60,7 @@ def _verdict_from_output(out: str, good_token: str, bad_token: str) -> str:
 
 
 def score_python(case_id: str, patched: str) -> PatchScore:
-    o = CASE_ORACLES[case_id]
+    o = _ALL_ORACLES[case_id]
     compiles = _py_compiles(patched)
 
     # a fresh writable base dir for cases that read VULNFIX_BASE (path traversal)
@@ -84,7 +89,7 @@ def score_python(case_id: str, patched: str) -> PatchScore:
 
 
 def score_java(case_id: str, patched: str) -> PatchScore:
-    o = CASE_ORACLES[case_id]
+    o = _ALL_ORACLES[case_id]
     exploit = "na"
     behavior = "na"
     compiles = True
@@ -109,5 +114,5 @@ def score_java(case_id: str, patched: str) -> PatchScore:
 
 
 def score_patch(case_id: str, patched: str) -> PatchScore:
-    lang = CASE_ORACLES[case_id]["language"]
+    lang = _ALL_ORACLES[case_id]["language"]
     return score_java(case_id, patched) if lang == "java" else score_python(case_id, patched)
