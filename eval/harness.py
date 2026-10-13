@@ -38,7 +38,11 @@ def _finding_for(case):
 
 
 def run_evaluation(repeats: int = 5, run_label: str = "run",
-                   case_ids=None, out_root: str = "results/eval"):
+                   case_ids=None, out_root: str = "results/eval",
+                   trace: bool = False):
+    if trace:
+        from eval.tracing import enable_tracing
+        enable_tracing(f"vulnfix-{run_label}")
     cases = [c for c in TEST_CASES if (case_ids is None or c["id"] in case_ids)]
     out_dir = os.path.join(out_root, run_label)
     os.makedirs(out_dir, exist_ok=True)
