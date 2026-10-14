@@ -43,7 +43,9 @@ _CWE_ALIASES = {
 
 
 def _norm(cwe):
-    return str(cwe).replace("CWE-", "").strip()
+    # strip the CWE- prefix and any leading zeros so "cwe-089" == "89"
+    v = str(cwe).upper().replace("CWE-", "").strip().lstrip("0")
+    return v or "0"
 
 
 def _matches(expected, reported_set):
