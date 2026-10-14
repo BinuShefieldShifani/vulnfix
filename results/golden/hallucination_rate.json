@@ -1,0 +1,5 @@
+{
+  "patches_analyzed": 120,
+  "import_hallucination_rate": 0.025,
+  "api_hallucination_rate": 0.0
+}
