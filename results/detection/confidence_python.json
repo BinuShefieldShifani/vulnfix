@@ -1,0 +1,35 @@
+{
+  "all": {
+    "cases": 1230,
+    "tp": 219,
+    "fn": 233,
+    "fp": 84,
+    "tn": 694,
+    "tpr": 0.485,
+    "fpr": 0.108,
+    "youden": 0.377,
+    "macro_youden": 0.158
+  },
+  ">=medium": {
+    "cases": 1230,
+    "tp": 219,
+    "fn": 233,
+    "fp": 73,
+    "tn": 705,
+    "tpr": 0.485,
+    "fpr": 0.094,
+    "youden": 0.391,
+    "macro_youden": 0.229
+  },
+  "high-only": {
+    "cases": 1230,
+    "tp": 179,
+    "fn": 273,
+    "fp": 19,
+    "tn": 759,
+    "tpr": 0.396,
+    "fpr": 0.024,
+    "youden": 0.372,
+    "macro_youden": 0.175
+  }
+}
