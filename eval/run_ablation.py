@@ -16,6 +16,8 @@ import json
 import os
 import time
 
+import sys, os as _os
+sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 from models import Finding
 from testcases import TEST_CASES
 from eval.scorer import score_patch
@@ -75,8 +77,12 @@ def main():
 
     # use the cases that have a runnable exploit oracle (so fix rate is measurable)
     from eval.cases import CASE_ORACLES
-    cases = [c for c in TEST_CASES
-             if CASE_ORACLES.get(c["id"], {}).get("exploit_driver")]
+    from eval.cases_heldout import HELDOUT_CASES, HELDOUT_ORACLES
+    from eval.cases_ablation import ABLATION_CASES, ABLATION_ORACLES
+    all_cases = TEST_CASES + HELDOUT_CASES + ABLATION_CASES
+    all_oracles = {**CASE_ORACLES, **HELDOUT_ORACLES, **ABLATION_ORACLES}
+    cases = [c for c in all_cases
+             if all_oracles.get(c["id"], {}).get("exploit_driver")]
     print(f"ablation on {len(cases)} cases with exploit oracles, "
           f"{args.repeats} repeats each arm\n")
 

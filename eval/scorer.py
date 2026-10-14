@@ -22,7 +22,8 @@ from dataclasses import dataclass, asdict
 from eval.cases import CASE_ORACLES
 try:
     from eval.cases_heldout import HELDOUT_ORACLES
-    _ALL_ORACLES = {**CASE_ORACLES, **HELDOUT_ORACLES}
+    from eval.cases_ablation import ABLATION_ORACLES
+    _ALL_ORACLES = {**CASE_ORACLES, **HELDOUT_ORACLES, **ABLATION_ORACLES}
 except Exception:
     _ALL_ORACLES = CASE_ORACLES
 from eval.sandbox import run_python, run_java
