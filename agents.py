@@ -2,6 +2,7 @@
 partial dict that LangGraph merges back in. JSON parsing is defensive because
 local models are inconsistent about clean JSON output."""
 import difflib
+import os
 import json
 import re
 
@@ -65,6 +66,10 @@ def _invoke_json(llm: ChatOllama, system: str, user: str, retries: int = 2):
 # --- Node 1: Retriever -------------------------------------------------------
 def retriever_node(state):
     f: Finding = state["finding"]
+    # Ablation switch: when VULNFIX_NO_RETRIEVAL is set, skip retrieval entirely
+    # and return empty context. Used to measure whether retrieval earns its place.
+    if os.getenv("VULNFIX_NO_RETRIEVAL"):
+        return {"retrieved_context": ""}
     query = f"{f.rule_id} {f.message} {' '.join(f.cwe)} {f.snippet}".strip()
     return {"retrieved_context": retrieve_context(query)}
 
