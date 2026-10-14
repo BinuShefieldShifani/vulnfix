@@ -119,19 +119,22 @@ def build_ground_truth(cs_files, limit):
 
 
 def scan_and_attribute(meta, config):
-    """Run Semgrep over the files in meta, attribute each finding to bad/good by
-    line number, and build the `reported` map keyed id -> set(cwe)."""
-    paths = [m["path"] for m in meta.values()]
+    """Run Semgrep over exactly the sampled files (in batches), attribute each
+    finding to a bad/good method by line number, build reported id -> set(cwe)."""
     reported = {}
-    # scan in batches by directory to keep the command sane
-    dirs = sorted({os.path.dirname(p) for p in paths})
     args = []
     for c in config.split(","):
         c = c.strip()
         if c:
             args += ["--config", c]
-    for d in dirs:
-        out = subprocess.run(["semgrep", *args, "--sarif", "--quiet", "--timeout", "15", d],
+
+    paths = [m["path"] for m in meta.values()]
+    # scan in batches of files to keep the command line sane
+    BATCH = 60
+    for k in range(0, len(paths), BATCH):
+        batch = paths[k:k + BATCH]
+        out = subprocess.run(["semgrep", *args, "--sarif", "--quiet",
+                              "--timeout", "30", *batch],
                              capture_output=True, text=True, timeout=3600)
         try:
             sarif = json.loads(out.stdout)
@@ -150,8 +153,8 @@ def scan_and_attribute(meta, config):
                 if base not in meta:
                     continue
                 cwes = rule_cwes.get(res.get("ruleId"), set())
-                for name, s, e in meta[base]["spans"]:
-                    if s <= line <= e:
+                for name, sline, eline in meta[base]["spans"]:
+                    if sline <= line <= eline:
                         kind = "bad" if name == "bad" else ("good" if name.startswith("good") else None)
                         if kind:
                             reported.setdefault(f"{base}::{kind}", set()).update(cwes)
@@ -167,6 +170,8 @@ def main():
                     help="max files sampled per CWE category (0=all); keeps the scan bounded")
     ap.add_argument("--only-cwes", default="78,89,90,22,79,327,328,330,643,502,611,798",
                     help="comma CWE list to include (overlaps other benchmarks); empty=all")
+    ap.add_argument("--variant", default="01",
+                    help="Juliet flow variant to score: \"01\" (baseline, comparable to OWASP), \"all\" (every variant, measures flow-tracking), or e.g. \"02\"")
     ap.add_argument("--out", default="results/detection/juliet_csharp.json")
     args = ap.parse_args()
 
@@ -185,6 +190,9 @@ def main():
     wanted = {c.strip() for c in args.only_cwes.split(",") if c.strip()}
     if wanted:
         cs_files = [f for f in cs_files if _cwe_from_name(f) in wanted]
+    if args.variant and args.variant != "all":
+        suffix = f"_{args.variant}.cs"
+        cs_files = [f for f in cs_files if f.endswith(suffix)]
     if args.per_cwe and args.per_cwe > 0:
         from collections import defaultdict
         buckets = defaultdict(list)
@@ -207,7 +215,8 @@ def main():
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as fh:
         json.dump({"language": "csharp", "source": "Juliet C# 1.3 (NIST SARD)",
-                   "config": config, "overall": overall, "per_category": per_cat}, fh, indent=2)
+                   "variant": args.variant, "config": config,
+                   "overall": overall, "per_category": per_cat}, fh, indent=2)
 
     print("\n=== Juliet C# 1.3 detection ===")
     print(f"{'category':<16}{'real':>5}{'TPR':>7}{'FPR':>7}{'Youden':>8}")
