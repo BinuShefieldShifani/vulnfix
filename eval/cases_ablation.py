@@ -312,7 +312,7 @@ print("BEHAVIOR_OK")
         "rule_id": "java.cmdi.runtime",
         "code": '''public class Example {
     public void ping(String host) throws Exception {
-        Runtime.getRuntime().exec("ping -c 1 " + host);
+        Runtime.getRuntime().exec(new String[]{"sh", "-c", "ping -c 1 " + host});
     }
 }
 ''',
