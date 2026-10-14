@@ -1,0 +1,148 @@
+{
+  "golden_set_size": 78,
+  "judge_model": "llama3.1:8b",
+  "modes": {
+    "pure": {
+      "n": 78,
+      "accuracy": 0.474,
+      "per_class": {
+        "good_fix": {
+          "precision": 0.459,
+          "recall": 0.971,
+          "support": 35
+        },
+        "secure_but_broken": {
+          "precision": 0.75,
+          "recall": 0.188,
+          "support": 16
+        },
+        "still_vulnerable": {
+          "precision": null,
+          "recall": 0.0,
+          "support": 17
+        },
+        "doesnt_compile": {
+          "precision": null,
+          "recall": 0.0,
+          "support": 10
+        },
+        "unsure": {
+          "precision": null,
+          "recall": null,
+          "support": 0
+        }
+      },
+      "confusion": {
+        "good_fix": {
+          "good_fix": 34,
+          "secure_but_broken": 1,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "secure_but_broken": {
+          "secure_but_broken": 3,
+          "good_fix": 13,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "doesnt_compile": {
+          "good_fix": 10,
+          "secure_but_broken": 0,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "still_vulnerable": {
+          "good_fix": 17,
+          "secure_but_broken": 0,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "unsure": {
+          "good_fix": 0,
+          "secure_but_broken": 0,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        }
+      },
+      "bad_patches_called_good": 40,
+      "bad_patches_total": 43,
+      "miss_rate_on_bad": 0.93
+    },
+    "assisted": {
+      "n": 78,
+      "accuracy": 0.692,
+      "per_class": {
+        "good_fix": {
+          "precision": 0.821,
+          "recall": 0.914,
+          "support": 35
+        },
+        "secure_but_broken": {
+          "precision": 0.433,
+          "recall": 0.812,
+          "support": 16
+        },
+        "still_vulnerable": {
+          "precision": null,
+          "recall": 0.0,
+          "support": 17
+        },
+        "doesnt_compile": {
+          "precision": 1.0,
+          "recall": 0.9,
+          "support": 10
+        },
+        "unsure": {
+          "precision": null,
+          "recall": null,
+          "support": 0
+        }
+      },
+      "confusion": {
+        "good_fix": {
+          "good_fix": 32,
+          "secure_but_broken": 3,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "secure_but_broken": {
+          "secure_but_broken": 13,
+          "good_fix": 3,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "doesnt_compile": {
+          "doesnt_compile": 9,
+          "secure_but_broken": 1,
+          "good_fix": 0,
+          "still_vulnerable": 0,
+          "unsure": 0
+        },
+        "still_vulnerable": {
+          "good_fix": 4,
+          "secure_but_broken": 13,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        },
+        "unsure": {
+          "good_fix": 0,
+          "secure_but_broken": 0,
+          "still_vulnerable": 0,
+          "doesnt_compile": 0,
+          "unsure": 0
+        }
+      },
+      "bad_patches_called_good": 7,
+      "bad_patches_total": 43,
+      "miss_rate_on_bad": 0.163
+    }
+  }
+}
