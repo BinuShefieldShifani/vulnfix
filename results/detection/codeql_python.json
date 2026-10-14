@@ -1,0 +1,24 @@
+{
+  "language": "python",
+  "engine": "codeql",
+  "source": "OWASP Benchmark Python v0.1",
+  "suite": "python-security-and-quality.qls (security-extended gave identical results)",
+  "note": "CWE matching corrected for CodeQL's zero-padded cwe-0NN tags.",
+  "overall": {"tpr": 0.252, "fpr": 0.193, "youden": 0.059, "macro_youden": 0.132},
+  "per_category": [
+    {"category": "cmdi", "real": 13, "tpr": 0.846, "fpr": 0.286, "youden": 0.56},
+    {"category": "codeinj", "real": 20, "tpr": 0.6, "fpr": 0.485, "youden": 0.115},
+    {"category": "deserialization", "real": 18, "tpr": 0.722, "fpr": 0.167, "youden": 0.555},
+    {"category": "hash", "real": 71, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "ldapi", "real": 16, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "pathtraver", "real": 65, "tpr": 0.692, "fpr": 0.631, "youden": 0.061},
+    {"category": "redirect", "real": 13, "tpr": 0.769, "fpr": 0.524, "youden": 0.245},
+    {"category": "securecookie", "real": 24, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "sqli", "real": 5, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "trustbound", "real": 18, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "weakrand", "real": 99, "tpr": 0.0, "fpr": 0.0, "youden": 0.0},
+    {"category": "xpathi", "real": 51, "tpr": 0.373, "fpr": 0.296, "youden": 0.077},
+    {"category": "xss", "real": 31, "tpr": 0.0, "fpr": 0.121, "youden": -0.121},
+    {"category": "xxe", "real": 8, "tpr": 0.5, "fpr": 0.15, "youden": 0.35}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "language": "python",
+  "source": "OWASP Benchmark Python v0.1",
+  "note": "Union of Semgrep+Bandit and CodeQL findings. Reconstructed from the evaluation run output.",
+  "engines": {
+    "semgrep": {"overall": {"tpr": 0.485, "fpr": 0.108, "youden": 0.377, "macro_youden": 0.158}},
+    "codeql":  {"overall": {"tpr": 0.252, "fpr": 0.193, "youden": 0.059, "macro_youden": 0.132}},
+    "combined":{"overall": {"tpr": 0.668, "fpr": 0.274, "youden": 0.394, "macro_youden": 0.19}}
+  }
+}
