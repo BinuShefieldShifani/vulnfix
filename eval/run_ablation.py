@@ -98,10 +98,10 @@ def main():
 
     print("\n=== retrieval ablation ===")
     print(f"{'arm':<20}{'truly_safe':>12}{'validated':>11}")
-    print(f"{'with retrieval':<20}{res['with_retrieval']['truly_safe_rate']:>12}"
-          f"{res['with_retrieval']['validated_rate']:>11}")
-    print(f"{'without retrieval':<20}{res['without_retrieval']['truly_safe_rate']:>12}"
-          f"{res['without_retrieval']['validated_rate']:>11}")
+    print(f"{'with retrieval':<20}{res['with_retrieval'].get('truly_safe_rate', 0):>12}"
+          f"{res['with_retrieval'].get('validated_rate', 0):>11}")
+    print(f"{'without retrieval':<20}{res['without_retrieval'].get('truly_safe_rate', 0):>12}"
+          f"{res['without_retrieval'].get('validated_rate', 0):>11}")
     print(f"\nwrote {args.out}")
 
 

@@ -1,0 +1,2500 @@
+{
+  "with_retrieval": {
+    "n": 155,
+    "truly_safe_rate": 0.839,
+    "validated_rate": 0.568,
+    "errors": 0
+  },
+  "without_retrieval": {
+    "n": 155,
+    "truly_safe_rate": 0.8,
+    "validated_rate": 0.548,
+    "errors": 0
+  },
+  "repeats": 5,
+  "cases": 31,
+  "runs_on": [
+    {
+      "case_id": "py-sqli",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 72.8
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.1
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.7
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.6
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.2
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.6
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.0
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.2
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.3
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 34.1
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.1
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 58.0
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 50.9
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.1
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 130.5
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 129.5
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.3
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.5
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.1
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.7
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.6
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.8
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.3
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.6
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 37.7
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 54.5
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 52.5
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 48.1
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.7
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 32.5
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.4
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.3
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.1
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.6
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 58.0
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 55.2
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 59.4
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 57.1
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 56.6
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.5
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 41.3
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 40.1
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 40.4
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 37.8
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "na",
+      "time_s": 44.1
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 39.4
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 41.7
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 135.5
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 207.6
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 110.5
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 342.2
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 37.5
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 33.7
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 40.2
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 33.0
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 34.9
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.4
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 35.0
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 39.9
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.6
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.7
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.2
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.9
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.7
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 46.0
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 33.6
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "ok",
+      "time_s": 37.2
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 28.5
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 31.9
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.6
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.5
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.8
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.0
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 46.7
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 48.3
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 48.3
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 44.2
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 45.1
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.3
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.1
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.7
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.5
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.5
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.3
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.6
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.0
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 39.5
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 41.9
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 38.7
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 38.7
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.1
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.5
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.1
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.6
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.7
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.7
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 50.0
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 52.6
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.9
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.9
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.2
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.7
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 30.9
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.8
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.2
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.9
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.3
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.4
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.6
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.2
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.3
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 43.3
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.9
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.9
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.6
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.0
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.5
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 41.9
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.8
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 59.3
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 59.8
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 58.4
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 58.6
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 58.6
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 39.9
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.3
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 40.8
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.8
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.0
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 37.3
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 39.9
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 44.3
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.8
+    }
+  ],
+  "runs_off": [
+    {
+      "case_id": "py-sqli",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.7
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 40.1
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.4
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.9
+    },
+    {
+      "case_id": "py-sqli",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.4
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 30.3
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 29.6
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 30.2
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 29.6
+    },
+    {
+      "case_id": "py-cmdi",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 30.0
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 33.7
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 34.7
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 34.4
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 35.5
+    },
+    {
+      "case_id": "py-eval",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 36.7
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 60.4
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.4
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.5
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.4
+    },
+    {
+      "case_id": "py-pickle",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 30.2
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.5
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.9
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.9
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 32.3
+    },
+    {
+      "case_id": "py-md5",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.2
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.6
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.8
+    },
+    {
+      "case_id": "py-secret",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.8
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 50.0
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 48.0
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 52.4
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 44.5
+    },
+    {
+      "case_id": "py-path",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 50.7
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 106.9
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 26.5
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 30.0
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 28.4
+    },
+    {
+      "case_id": "py-yaml",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 27.3
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 57.2
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 58.3
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 57.0
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 56.2
+    },
+    {
+      "case_id": "java-cmdi",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 54.6
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 42.5
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.4
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.0
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "ok",
+      "time_s": 40.0
+    },
+    {
+      "case_id": "neg-safe-sql",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "ok",
+      "time_s": 43.5
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.9
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 39.7
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 36.4
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.6
+    },
+    {
+      "case_id": "py-ssrf",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 38.5
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 195.8
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.4
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.2
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 353.9
+    },
+    {
+      "case_id": "py-weakrand",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.0
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 34.6
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 32.3
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 31.7
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 34.5
+    },
+    {
+      "case_id": "py-openredirect",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "broken",
+      "time_s": 32.3
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.3
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.3
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.9
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.0
+    },
+    {
+      "case_id": "py-tmpfile",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.0
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.9
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.5
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.4
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.1
+    },
+    {
+      "case_id": "py-chmod",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.8
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 32.5
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 32.0
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 29.3
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "error",
+      "behavior": "broken",
+      "time_s": 29.5
+    },
+    {
+      "case_id": "py-ldap",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "compile_fail",
+      "time_s": 29.8
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.7
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 36.8
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.0
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.9
+    },
+    {
+      "case_id": "abl-sqli-format",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.0
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 45.3
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 45.6
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 43.2
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 46.3
+    },
+    {
+      "case_id": "abl-cmdi-shelltrue",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 43.8
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.1
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.0
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 39.0
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "broken",
+      "time_s": 32.1
+    },
+    {
+      "case_id": "abl-weak-des",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.0
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.5
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.7
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.1
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.2
+    },
+    {
+      "case_id": "abl-weak-session",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.4
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 32.5
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 41.3
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.4
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 40.1
+    },
+    {
+      "case_id": "abl-zip-traversal",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 38.3
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 30.9
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 30.6
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.0
+    },
+    {
+      "case_id": "abl-tls-noverify",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 30.8
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 46.3
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.3
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 45.9
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.3
+    },
+    {
+      "case_id": "abl-yaml-fullload",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 30.9
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.2
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.7
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.7
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.9
+    },
+    {
+      "case_id": "abl-xxe-lxml",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.1
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 28.9
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 29.5
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 31.2
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 29.7
+    },
+    {
+      "case_id": "abl-requests-noverify",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 32.9
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 29.9
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.8
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.8
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.0
+    },
+    {
+      "case_id": "abl-worldreadable-key",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.4
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.3
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 32.3
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.7
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 31.5
+    },
+    {
+      "case_id": "abl-assert-auth",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 34.4
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.2
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 38.4
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 37.5
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.9
+    },
+    {
+      "case_id": "abl-sqli-percent",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "ok",
+      "time_s": 35.3
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 56.6
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 64.9
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "exploited",
+      "behavior": "na",
+      "time_s": 56.5
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 57.9
+    },
+    {
+      "case_id": "abl-java-cmdi",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 59.6
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 1,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 38.9
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 2,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 37.8
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 3,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 37.4
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 4,
+      "validated": false,
+      "exploit": "compile_fail",
+      "behavior": "na",
+      "time_s": 34.9
+    },
+    {
+      "case_id": "abl-java-sqli",
+      "repeat": 5,
+      "validated": false,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 40.3
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 1,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 33.8
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 2,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 37.4
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 3,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.2
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 4,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 35.1
+    },
+    {
+      "case_id": "abl-java-md5",
+      "repeat": 5,
+      "validated": true,
+      "exploit": "safe",
+      "behavior": "na",
+      "time_s": 34.0
+    }
+  ]
+}
