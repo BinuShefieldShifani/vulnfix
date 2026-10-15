@@ -11,6 +11,10 @@ from langchain_ollama import ChatOllama
 from config import settings
 from models import Finding
 from retriever import retrieve_context
+try:
+    from eval.codemods import try_codemod
+except Exception:
+    def try_codemod(cwe, src): return (None, None)
 
 
 def _llm(model: str, temperature: float = 0.1, json_mode: bool = False) -> ChatOllama:
@@ -127,6 +131,21 @@ _PATCH_SYS = (
 def patch_generator_node(state):
     f: Finding = state["finding"]
     src = state["source_code"]
+
+    # Deterministic codemod routing: for CWEs with a known-correct fix, apply it
+    # directly and skip the LLM. The ablation showed the 7B model fixes these
+    # patterns (LDAP injection, open redirect) poorly; a codemod fixes them
+    # reliably. Only runs on the first attempt (no feedback yet).
+    if not state.get("validation_feedback"):
+        _fixed, _cm = try_codemod(f.cwe, src)
+        if _fixed and _fixed.strip() != src.strip():
+            _diff = "".join(difflib.unified_diff(
+                src.splitlines(keepends=True), _fixed.splitlines(keepends=True),
+                fromfile=f"a/{f.file_path}", tofile=f"b/{f.file_path}"))
+            return {"patched_code": _fixed, "patch_diff": _diff,
+                    "verification_test": "", "codemod": _cm,
+                    "attempts": state.get("attempts", 0) + 1}
+
     feedback = state.get("validation_feedback", "")
     user = (
         f"ROOT CAUSE:\n{state.get('root_cause', '')}\n\n"
