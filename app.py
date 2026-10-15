@@ -20,7 +20,11 @@ from models import Finding
 from sarif import parse_sarif
 from testcases import TEST_CASES, CASES_BY_NAME
 
+from eval.approval import ApprovalQueue
+
 st.set_page_config(page_title="VulnFix — Agentic Remediation", layout="wide")
+
+_QUEUE = ApprovalQueue()
 
 NODE_LABELS = {
     "retriever": "Retriever", "static_analyst": "Static Analyst",
@@ -244,6 +248,22 @@ for case_name, lang, cwe, finding, source in to_run:
             elapsed = time.perf_counter() - t0
             record_result(case_name, lang, cwe, result, elapsed)
             show_result(result, state, elapsed)
+            # submit the validated patch to the human-approval queue
+            if result and result.patch_diff:
+                v = result.validation
+                engine = "codemod" if getattr(result, "codemod", None) else "llm"
+                pid = _QUEUE.submit(
+                    case_id=case_name, language=lang, cwe=str(cwe),
+                    original_code=source, patch_diff=result.patch_diff,
+                    patched_code=result.patched_code or "",
+                    engine=(f"codemod:{result.codemod}" if engine == "codemod" else "llm"),
+                    validation={
+                        "validated": bool(v and v.validated),
+                        "inconclusive": bool(v and v.inconclusive),
+                        "notes": (v.notes if v else ""),
+                    })
+                st.caption(f"📋 Submitted to approval queue as `{pid}` — "
+                           f"review it in the **Approvals** tab.")
         except Exception as e:  # noqa: BLE001
             st.error(f"Pipeline error: {e}\n\nIs Ollama running with the "
                      f"selected models pulled?")
@@ -273,3 +293,53 @@ if rows:
     if st.button("Clear results"):
         st.session_state["results"] = []
         st.rerun()
+
+
+# --- Human approval workflow ------------------------------------------------
+st.divider()
+st.header("✅ Human approval queue")
+st.caption("VulnFix never auto-applies a fix. Each validated patch waits here "
+           "for a human to approve or reject. Every decision is written to a "
+           "tamper-evident audit log.")
+
+_reviewer = st.text_input("Reviewer name", "reviewer", key="reviewer_name")
+_pending = _QUEUE.pending()
+if not _pending:
+    st.info("No patches pending review. Run a remediation above to queue one.")
+for _p in _pending:
+    with st.expander(f"🔸 {_p['case_id']}  ·  {_p['cwe']}  ·  "
+                     f"engine={_p['engine']}  ·  id={_p['id']}", expanded=True):
+        _c1, _c2 = st.columns([3, 2])
+        with _c1:
+            st.code(_p["patch_diff"] or "(no diff)", language="diff")
+        with _c2:
+            st.write("**Evidence**")
+            st.json(_p["validation"])
+        _r = st.text_input("Reason (optional)", key=f"reason_{_p['id']}")
+        _b1, _b2 = st.columns(2)
+        if _b1.button("✅ Approve", key=f"appr_{_p['id']}"):
+            _QUEUE.approve(_p["id"], actor=_reviewer, reason=_r)
+            st.success(f"Approved {_p['id']} by {_reviewer}")
+            st.rerun()
+        if _b2.button("❌ Reject", key=f"rej_{_p['id']}"):
+            _QUEUE.reject(_p["id"], actor=_reviewer, reason=_r)
+            st.warning(f"Rejected {_p['id']} by {_reviewer}")
+            st.rerun()
+
+# --- Audit trail ------------------------------------------------------------
+st.divider()
+st.header("📜 Audit trail")
+_trail = _QUEUE.audit_trail()
+if _trail:
+    st.dataframe(
+        [{"event": e["event"], "patch_id": e["patch_id"], "actor": e["actor"],
+          "at": e["at"], "reason": (e.get("detail") or {}).get("reason", ""),
+          "hash": e["hash"]} for e in _trail],
+        use_container_width=True)
+    if st.button("🔐 Verify audit integrity"):
+        if _QUEUE.verify_audit():
+            st.success("✅ Audit log intact — hash chain verified, no tampering.")
+        else:
+            st.error("⚠️ Audit log TAMPERED — hash chain broken.")
+else:
+    st.info("Audit log is empty.")
