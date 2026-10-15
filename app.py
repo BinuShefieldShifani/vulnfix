@@ -325,21 +325,3 @@ for _p in _pending:
             _QUEUE.reject(_p["id"], actor=_reviewer, reason=_r)
             st.warning(f"Rejected {_p['id']} by {_reviewer}")
             st.rerun()
-
-# --- Audit trail ------------------------------------------------------------
-st.divider()
-st.header("📜 Audit trail")
-_trail = _QUEUE.audit_trail()
-if _trail:
-    st.dataframe(
-        [{"event": e["event"], "patch_id": e["patch_id"], "actor": e["actor"],
-          "at": e["at"], "reason": (e.get("detail") or {}).get("reason", ""),
-          "hash": e["hash"]} for e in _trail],
-        use_container_width=True)
-    if st.button("🔐 Verify audit integrity"):
-        if _QUEUE.verify_audit():
-            st.success("✅ Audit log intact — hash chain verified, no tampering.")
-        else:
-            st.error("⚠️ Audit log TAMPERED — hash chain broken.")
-else:
-    st.info("Audit log is empty.")
