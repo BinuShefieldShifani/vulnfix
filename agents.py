@@ -12,6 +12,11 @@ from config import settings
 from models import Finding
 from retriever import retrieve_context
 try:
+    from eval.funcextract import extract_function, splice_function
+except Exception:
+    extract_function = lambda *a, **k: None
+    splice_function = lambda *a, **k: None
+try:
     from eval.codemods import try_codemod
 except Exception:
     def try_codemod(cwe, src): return (None, None)
@@ -147,16 +152,32 @@ def patch_generator_node(state):
                     "attempts": state.get("attempts", 0) + 1}
 
     feedback = state.get("validation_feedback", "")
+
+    # Function-level targeting: if the finding points at a line and we can extract
+    # the enclosing function, fix only that function and splice it back into the
+    # full file. This avoids whole-file rewrites that mangle unrelated code on
+    # large/multi-function files. Falls back to whole-file when extraction fails.
+    _lang = getattr(f, "language", None) or ("java" if f.file_path.endswith(".java")
+             else "csharp" if f.file_path.endswith(".cs") else "python")
+    _span = None
+    if getattr(f, "start_line", 0) and len(src.splitlines()) > 12:
+        _span = extract_function(src, f.start_line, _lang)
+    _patch_target = _span.source if _span else src
+
     user = (
         f"ROOT CAUSE:\n{state.get('root_cause', '')}\n\n"
         f"FIX STRATEGY:\n{state.get('fix_strategy', '')}\n\n"
         + (f"PREVIOUS ATTEMPT FAILED VALIDATION: {feedback}\n\n" if feedback else "")
-        + f"FILE: {f.file_path}\nSOURCE:\n{src}"
+        + f"FILE: {f.file_path}\nSOURCE:\n{_patch_target}"
     )
     data, raw = _invoke_json(
         _llm(settings.CODE_MODEL, temperature=0.2, json_mode=True),
         _PATCH_SYS, user)
-    patched = data.get("patched_file") or src
+    patched_fragment = data.get("patched_file") or _patch_target
+    if _span and patched_fragment.strip() != _patch_target.strip():
+        patched = splice_function(src, _span, patched_fragment)
+    else:
+        patched = data.get("patched_file") or src
     diff = "".join(difflib.unified_diff(
         src.splitlines(keepends=True),
         patched.splitlines(keepends=True),
