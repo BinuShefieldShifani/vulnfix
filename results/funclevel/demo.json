@@ -1,0 +1,14 @@
+{
+  "feature": "function-level patching",
+  "cmdi_bigfile": {
+    "status": "validated",
+    "parses": true,
+    "other_functions_preserved": true,
+    "note": "fix isolated to run_ping; helper/health/__main__ intact"
+  },
+  "ssrf_bigfile": {
+    "status": "inconclusive",
+    "parses": false,
+    "note": "function-level targeting worked (file structure preserved) but 7B model produced invalid byte-string literals; validator caught it"
+  }
+}
