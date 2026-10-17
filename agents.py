@@ -98,7 +98,6 @@ _ANALYST_SYS = (
 
 def static_analyst_node(state):
     f: Finding = state["finding"]
-    _guidance = build_guidance((getattr(f, "language", None) or ("java" if f.file_path.endswith(".java") else "csharp" if f.file_path.endswith(".cs") else "python")), f.cwe)
     user = (f"FINDING:\nrule={f.rule_id}\nmessage={f.message}\ncwe={f.cwe}\n"
             f"line={f.start_line}\n\nSOURCE ({f.file_path}):\n{state['source_code']}")
     data, raw = _invoke_json(_llm(settings.REASONING_MODEL, json_mode=True),
@@ -169,6 +168,7 @@ def patch_generator_node(state):
         _span = extract_function(src, f.start_line, _lang)
     _patch_target = _span.source if _span else src
 
+    _guidance = build_guidance((getattr(f, "language", None) or ("java" if f.file_path.endswith(".java") else "csharp" if f.file_path.endswith(".cs") else "python")), f.cwe)
     user = (
         f"{_guidance}\n\n"
         f"ROOT CAUSE:\n{state.get('root_cause', '')}\n\n"
