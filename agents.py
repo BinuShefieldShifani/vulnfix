@@ -12,6 +12,10 @@ from config import settings
 from models import Finding
 from retriever import retrieve_context
 try:
+    from eval.fix_guidance import build_guidance
+except Exception:
+    build_guidance = lambda lang, cwe: ''
+try:
     from eval.funcextract import extract_function, splice_function
 except Exception:
     extract_function = lambda *a, **k: None
@@ -94,6 +98,7 @@ _ANALYST_SYS = (
 
 def static_analyst_node(state):
     f: Finding = state["finding"]
+    _guidance = build_guidance((getattr(f, "language", None) or ("java" if f.file_path.endswith(".java") else "csharp" if f.file_path.endswith(".cs") else "python")), f.cwe)
     user = (f"FINDING:\nrule={f.rule_id}\nmessage={f.message}\ncwe={f.cwe}\n"
             f"line={f.start_line}\n\nSOURCE ({f.file_path}):\n{state['source_code']}")
     data, raw = _invoke_json(_llm(settings.REASONING_MODEL, json_mode=True),
@@ -165,6 +170,7 @@ def patch_generator_node(state):
     _patch_target = _span.source if _span else src
 
     user = (
+        f"{_guidance}\n\n"
         f"ROOT CAUSE:\n{state.get('root_cause', '')}\n\n"
         f"FIX STRATEGY:\n{state.get('fix_strategy', '')}\n\n"
         + (f"PREVIOUS ATTEMPT FAILED VALIDATION: {feedback}\n\n" if feedback else "")
