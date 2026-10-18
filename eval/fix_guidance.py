@@ -24,10 +24,10 @@ from __future__ import annotations
 INSTALLED_PACKAGES = {
     "python": ["bcrypt", "pyyaml (yaml)", "requests", "lxml", "defusedxml",
                "cryptography", "sqlalchemy", "flask", "jinja2"],
-    "java": ["(standard library only — no third-party libraries available; "
-             "use java.security, javax.crypto, java.sql PreparedStatement, etc.)"],
-    "csharp": ["(standard library only — use System.Security.Cryptography, "
-               "System.Data.SqlClient parameters, System.Text.Json, etc.)"],
+    "java": ["java.security, javax.crypto (PBKDF2WithHmacSHA256), "
+             "java.sql PreparedStatement, java.util"],
+    "csharp": ["System.Security.Cryptography (Rfc2898DeriveBytes), "
+               "System.Data.SqlClient parameters, System.Text.Json"],
 }
 
 # Per-CWE correct-fix guidance. Keyed by the bare CWE number (string).
@@ -71,8 +71,8 @@ def dependency_note(language: str) -> str:
     if lang in ("cs", "c#"):
         lang = "csharp"
     pkgs = INSTALLED_PACKAGES.get(lang, INSTALLED_PACKAGES["python"])
-    return ("AVAILABLE DEPENDENCIES (use ONLY these plus the standard library; "
-            "do not import anything else): " + ", ".join(pkgs))
+    return ("Prefer the standard library. Commonly available packages: "
+            + ", ".join(pkgs) + ". Avoid importing packages not listed here.")
 
 
 def cwe_note(cwe_list) -> str:
