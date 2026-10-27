@@ -1,12 +1,29 @@
-# VulnFix: local AI agents that fix code vulnerabilities and verify their own fixes
+# VulnFix: Verified AI-Assisted Vulnerability Remediation
 
 [![CI](https://github.com/BinuShefieldShifani/vulnfix/actions/workflows/ci.yml/badge.svg)](https://github.com/BinuShefieldShifani/vulnfix/actions/workflows/ci.yml)
 
+## Research prototype exploring how AI-generated security patches can be verified through execution before human approval.
+
 ## What this is
 
-VulnFix is an AI agent pipeline that takes a security finding and produces a fix you can trust: it generates a patch, then proves the patch works by running the real exploit against it and checking the code still behaves correctly. Only verified fixes reach a human, who approves or rejects each one, and every decision is written to a tamper-evident log. Everything runs locally (LangGraph + Ollama + ChromaDB), so it can run air-gapped.
+VulnFix is a research prototype for verified AI-assisted vulnerability remediation. It takes a security finding, generates a candidate patch, and validates the change through execution before it can reach human approval. Validation combines security re-scanning, compilation, behavior testing, and exploit execution where available.
+
+The core idea: patch generation is not the hard part; verifying that an AI-generated patch actually fixes the underlying vulnerability is.
+
+The system runs locally using LangGraph, Ollama, and ChromaDB, supporting privacy-sensitive and air-gapped environments. Every approved or rejected change is recorded in a tamper-evident audit log.
 
 The design principle: scanners and language models are both unreliable at security, so VulnFix never trusts either on its own. It verifies every fix by execution, running the exploit, the behavior tests, and the compiler, and ships nothing it cannot verify. Where it cannot confirm a fix, it says so rather than guessing. This repo also measures, on public benchmarks, exactly how unreliable off-the-shelf scanners are, which is the evidence for why execution-based verification is necessary.
+
+## Key results
+
+- **~93% verified fix rate** across 30 vulnerability classes in Python and Java
+- **0 approved patches remained exploitable** across 95+ benchmark runs
+- **0 approved patches broke tested behavior**
+- **0/40 patches that remained exploitable were approved** on held-out vulnerability classes
+- Deterministic codemods improved the baseline from **~84% → ~90%**
+- Dependency + CWE guidance improved the result to **~92.7%**
+- A 14B model showed **no meaningful overall improvement** over the 7B production configuration
+- In a realistic 15-file end-to-end test, **9/15 fixes were correctly approved; 6/15 were rejected because they were incorrect, unverifiable, or behavior-breaking** 
 
 ## How it works
 
@@ -16,10 +33,11 @@ finding ─▶ Retriever ─▶ Static Analyst ─▶ Root-Cause ─▶ Patch ro
                                            codemod ──────┘  └── retry ──────┘         audit log
                                            (known patterns)
 ```
+The key architectural decision is that the LLM is responsible for proposing a fix, not deciding whether the fix is safe.
 
 The **Patch router** either applies a deterministic codemod (for patterns the model handles poorly) or calls the LLM. On large/multi-function files it can extract just the vulnerable function, fix that, and splice it back.
 
-The **Validator** is the heart of it. A patch is `validated` only if:
+The Validator is the core of VulnFix. The model proposes a patch; independent validation determines whether it can proceed. A patch is validated only if:
 1. the security re-scan (Semgrep custom taint rules + public packs + Bandit) shows the finding's CWE is gone,
 2. the patched code **compiles** (`py_compile` / `javac`),
 3. if a behavior test is supplied, the patched code **still passes it**, and
@@ -27,7 +45,7 @@ The **Validator** is the heart of it. A patch is `validated` only if:
 
 If no scanner can confirm the original was vulnerable, it returns `inconclusive` and ships nothing. Models: `qwen2.5-coder:7b` (patches), `llama3.1:8b` (reasoning), `nomic-embed-text` (embeddings).
 
-## Headline result: ~93% verified fix rate across 30 vulnerability types
+## Evaluation results
 
 Across 30 vulnerability classes in Python and Java (5 runs each), scored by independent oracles that run the real exploit and behavior tests against each patch:
 
@@ -64,7 +82,9 @@ The bigger-model result is the interesting negative: with good guidance already 
 
 On vulnerability types it had never seen, VulnFix never once approved an exploitable patch, and fixed most of what it could verify.
 
-## End-to-end test: 15 realistic multi-function files, 3 languages
+## Realistic end-to-end evaluation
+
+15 multi-function service files across Python, Java, and C# were processed through the full workflow.
 
 Fifteen realistic service files (Flask apps, DAOs, workers, config loaders) run through the full UI: finding → remediation → human review in the approval queue.
 
@@ -104,7 +124,7 @@ Their union lifts recall from 0.49 to 0.67 at the cost of more false positives. 
 
 Raw data: [`results/detection/`](results/detection).
 
-## Is LLM judgment trustworthy? (calibration against a human golden set)
+## Why LLM judgment alone is insufficient
 
 We tested whether an LLM could judge patch quality instead of execution-based checks, calibrated against 80 hand-labeled patches:
 
@@ -130,7 +150,7 @@ The difference is within run-to-run noise (a pilot run had it the other way). Th
 
 Raw data: [`results/ablation/`](results/ablation).
 
-## Capabilities
+## Engineering capabilities
 
 - **Verify-by-execution validator**: scanner re-scan + compile check + optional behavior test; returns `validated` / `unvalidated` / `inconclusive` and never ships an unverified fix.
 - **Deterministic codemods**: known-correct fixes for patterns the model handles poorly (LDAP injection, open redirect), applied before the LLM.
@@ -143,7 +163,7 @@ Raw data: [`results/ablation/`](results/ablation).
 - **Three languages**: Python, Java, and C# at the scanner and function-extraction layers.
 - **LLMOps**: CI with a skip-gate (fails if any test is unexpectedly skipped), pinned dependencies + lock file, optional MLflow tracing (local SQLite, off by default), and a reproducible eval harness with a held-out generalization set.
 
-## Limits and honest positioning
+## Current limitations and next steps
 
 This is a rigorously-evaluated **research prototype**, not an enterprise-ready product. What it does well: localized, function-scoped vulnerabilities across Python, Java, and C#, verified by execution, with human oversight and an audit trail. What it does not do yet:
 
@@ -155,6 +175,12 @@ This is a rigorously-evaluated **research prototype**, not an enterprise-ready p
 - **C# fix-and-verify** is partial: scanner, extraction, and SQL-injection/deserialization fixes work; command-injection and weak-hash cases often return inconclusive because free C# scanner coverage is thin. A `dotnet` compile branch in the validator is scoped but not built.
 
 The core loop (generate → verify by execution → human-approve) is sound and measured. Productionizing it is integration, isolation, and scale work.
+
+## Research takeaway
+
+The experiments suggest that improving AI vulnerability remediation is not primarily a matter of using a larger language model. In this evaluation, deterministic remediation, dependency/CWE guidance, and—most importantly—independent execution-based validation had a larger practical impact than increasing model size.
+
+VulnFix therefore treats the LLM as a patch-generation component inside a larger verification workflow rather than as the authority on whether a security fix is correct.
 
 ## Running it
 
